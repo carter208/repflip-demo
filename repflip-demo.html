@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Repflip — Know Who You're Working With</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: { 950: '#020810', 900: '#040d21', 800: '#071230', 700: '#0a1a3e' },
+      }
+    }
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #020810; color: #f1f5f9; -webkit-font-smoothing: antialiased; margin: 0; }
+  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: #040d21; } ::-webkit-scrollbar-thumb { background: #1a2d4a; border-radius: 3px; }
+  .glass { background: linear-gradient(135deg, rgba(10,26,62,0.85) 0%, rgba(7,18,48,0.92) 100%); border: 1px solid rgba(37,99,235,0.15); }
+  .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #06b6d4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-grid { background-image: linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px); background-size: 60px 60px; }
+  .hero-glow { background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,0.22) 0%, transparent 70%); }
+  @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 6px rgba(37,99,235,0.1),0 0 40px rgba(37,99,235,0.12)} 50%{box-shadow:0 0 0 9px rgba(37,99,235,0.18),0 0 60px rgba(37,99,235,0.2)} }
+  .score-ring { animation: pulse-ring 3s ease-in-out infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.8s linear infinite; }
+  .page { display: none; } .page.active { display: block; }
+  .tag-pos { background: rgba(6,78,59,0.3); color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
+  .tag-neg { background: rgba(127,29,29,0.3); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+  .star-on { color: #f59e0b; } .star-off { color: #1e3a5f; }
+  .btn-primary { background: #2563eb; color: white; font-weight: 700; border-radius: 12px; padding: 12px 24px; border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 24px rgba(37,99,235,0.3); }
+  .btn-primary:hover { background: #1d4ed8; transform: scale(1.02); }
+  .btn-secondary { background: rgba(37,99,235,0.15); color: #93c5fd; font-weight: 600; border-radius: 12px; padding: 12px 24px; border: 1px solid rgba(37,99,235,0.3); cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { background: rgba(37,99,235,0.25); color: white; }
+  .nav-link { color: #94a3b8; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-block; }
+  .nav-link:hover, .nav-link.active { background: rgba(37,99,235,0.15); color: #93c5fd; }
+  .card { border-radius: 16px; padding: 20px; margin-bottom: 12px; transition: all 0.2s; }
+  .card:hover { border-color: rgba(37,99,235,0.35) !important; }
+  .input-field { width: 100%; background: rgba(10,26,62,0.6); border: 1px solid rgba(37,99,235,0.25); border-radius: 12px; padding: 14px 16px; color: white; font-size: 15px; outline: none; transition: all 0.2s; font-family: inherit; }
+  .input-field:focus { border-color: rgba(37,99,235,0.6); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .input-field::placeholder { color: #475569; }
+  .tab-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: #64748b; transition: all 0.2s; }
+  .tab-btn.active { background: #2563eb; color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+  .tier-pill { border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav style="position:fixed;top:0;left:0;right:0;z-index:50;border-bottom:1px solid rgba(15,34,80,0.8);background:rgba(2,8,16,0.85);backdrop-filter:blur(16px);">
+  <div style="max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+    <div onclick="showPage('landing')" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+      <div style="width:32px;height:32px;background:#2563eb;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(37,99,235,0.4);">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" fill="white" fill-opacity="0.9"/><path d="M8 5L11 6.75V10.25L8 12L5 10.25V6.75L8 5Z" fill="white"/></svg>
+      </div>
+      <span style="font-size:18px;font-weight:800;color:white;letter-spacing:-0.02em;">Rep<span style="color:#60a5fa;">flip</span></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;" id="nav-links">
+      <span class="nav-link" id="nav-dashboard" onclick="showPage('dashboard')">Business Dashboard</span>
+      <span class="nav-link" id="nav-profile" onclick="showPage('profile')">Consumer Profile</span>
+      <span class="nav-link" id="nav-submit" onclick="showPage('submit')">Submit Review</span>
+    </div>
+    <button class="btn-primary" style="padding:8px 18px;font-size:14px;" onclick="showPage('dashboard')">For Businesses</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════ LANDING PAGE ═══════════════════════════════════════ -->
+<div id="page-landing" class="page active">
+  <div style="position:relative;overflow:hidden;padding-top:80px;">
+    <div class="hero-grid" style="position:absolute;inset:0;opacity:.6;"></div>
+    <div class="hero-glow" style="position:absolute;inset:0;"></div>
+    <div style="position:absolute;top:-160px;left:50%;transform:translateX(-50%);width:700px;height:700px;border-radius:50%;background:rgba(37,99,235,0.08);filter:blur(100px);pointer-events:none;"></div>
+
+    <div style="position:relative;max-width:900px;margin:0 auto;padding:80px 24px 80px;text-align:center;">
+      <div style="display:inline-flex;align-items:center;gap:8px;border-radius:999px;border:1px solid rgba(37,99,235,0.35);background:rgba(15,34,80,0.5);padding:6px 16px;font-size:13px;color:#93c5fd;margin-bottom:24px;backdrop-filter:blur(8px);">
+        <span style="width:7px;height:7px;border-radius:50%;background:#60a5fa;animation:pulse-ring 2s ease-in-out infinite;display:inline-block;"></span>
+        Now in Private Beta — Limited Founding Memberships Available
+      </div>
+      <h1 style="font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.08;letter-spacing:-0.03em;color:white;margin:0 0 20px;">
+        Know who you're working<br>
+        <span class="gradient-text">with before the job starts.</span>
+      </h1>
+      <p style="font-size:clamp(16px,2vw,20px);color:#94a3b8;max-width:600px;margin:0 auto 36px;line-height:1.65;">
+        Repflip is the two-sided reputation platform that lets service businesses rate their customers — and rewards consumers who show up, pay on time, and treat workers with respect.
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:60px;">
+        <button class="btn-primary" style="font-size:16px;padding:16px 32px;display:flex;align-items:center;gap:8px;" onclick="showPage('dashboard')">
+          Get Started Free
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </button>
+        <button class="btn-secondary" style="font-size:16px;padding:16px 32px;" onclick="showPage('profile')">View Consumer Profile</button>
+      </div>
+
+      <!-- Score Preview Card -->
+      <div style="max-width:380px;margin:0 auto;">
+        <div class="glass" style="border-radius:20px;padding:24px;position:relative;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,0.5);">
+          <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(37,99,235,0.12);filter:blur(30px);"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="text-align:left;">
+              <p style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;margin:0 0 4px;">Consumer Score</p>
+              <p style="font-size:14px;font-weight:600;color:#cbd5e1;margin:0;">Marcus Thompson</p>
+            </div>
+            <span class="tier-pill" style="background:rgba(14,116,144,0.2);color:#7dd3fc;border:1px solid rgba(125,211,252,0.3);">Platinum</span>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:16px;">
+            <span style="font-size:72px;font-weight:900;color:white;line-height:1;">94</span>
+            <div style="margin-bottom:12px;">
+              <div style="width:130px;height:6px;background:rgba(37,99,235,0.15);border-radius:99px;overflow:hidden;margin-bottom:4px;">
+                <div style="height:100%;width:94%;background:linear-gradient(90deg,#2563eb,#06b6d4);border-radius:99px;box-shadow:0 0 10px rgba(37,99,235,0.5);"></div>
+              </div>
+              <p style="font-size:11px;color:#475569;margin:0;">out of 100</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="tag-pos" style="border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;">Paid immediately</span>
+            <span class="tag-pos" style="border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;">Respectful</span>
+            <span class="tag-pos" style="border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;">Easy to communicate</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- For Businesses -->
+  <div style="max-width:1100px;margin:0 auto;padding:80px 24px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <span style="border-radius:99px;border:1px solid rgba(37,99,235,0.3);background:rgba(15,34,80,0.4);padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">For Businesses</span>
+    </div>
+    <h2 style="text-align:center;font-size:clamp(28px,4vw,48px);font-weight:900;color:white;margin:0 0 16px;letter-spacing:-0.02em;">Stop taking on unknown risk</h2>
+    <p style="text-align:center;color:#94a3b8;max-width:520px;margin:0 auto 56px;font-size:16px;line-height:1.6;">Every contractor, cleaner, plumber, and service pro deserves to know their client's reputation before committing.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+      <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">🔍</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Instant Lookup</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Search any customer by name or phone before booking. See their score, tier, and history in seconds.</p></div>
+      <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">⭐</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Submit Reviews</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Rate clients with behavioral tags after every job. Your feedback shapes the platform for all service pros.</p></div>
+      <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">🛡️</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Risk Protection</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Decline high-risk customers before they cost you time, money, or headaches on the job site.</p></div>
+    </div>
+  </div>
+
+  <!-- Tier System -->
+  <div style="background:rgba(4,13,33,0.6);padding:80px 0;">
+    <div style="max-width:1100px;margin:0 auto;padding:0 24px;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <span style="border-radius:99px;border:1px solid rgba(37,99,235,0.3);background:rgba(15,34,80,0.4);padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">Reputation Tiers</span>
+      </div>
+      <h2 style="text-align:center;font-size:clamp(28px,4vw,48px);font-weight:900;color:white;margin:0 0 56px;letter-spacing:-0.02em;">Every score tells a story</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div class="glass" style="border-radius:16px;padding:24px;border-color:rgba(205,127,50,0.2)!important;transition:transform .2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(205,127,50,0.2);color:#cd7f32;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:12px;">B</div>
+          <h3 style="font-size:20px;font-weight:900;color:white;margin:0 0 4px;">Bronze</h3>
+          <p style="font-size:13px;font-weight:700;color:#cd7f32;margin:0 0 8px;">Score 60–74</p>
+          <p style="font-size:12px;color:#475569;margin:0;">Room to grow</p>
+        </div>
+        <div class="glass" style="border-radius:16px;padding:24px;border-color:rgba(156,163,175,0.2)!important;transition:transform .2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(156,163,175,0.15);color:#9ca3af;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:12px;">S</div>
+          <h3 style="font-size:20px;font-weight:900;color:white;margin:0 0 4px;">Silver</h3>
+          <p style="font-size:13px;font-weight:700;color:#9ca3af;margin:0 0 8px;">Score 75–84</p>
+          <p style="font-size:12px;color:#475569;margin:0;">Trusted client</p>
+        </div>
+        <div class="glass" style="border-radius:16px;padding:24px;border-color:rgba(245,158,11,0.25)!important;transition:transform .2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,0.2);color:#f59e0b;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:12px;">G</div>
+          <h3 style="font-size:20px;font-weight:900;color:white;margin:0 0 4px;">Gold</h3>
+          <p style="font-size:13px;font-weight:700;color:#f59e0b;margin:0 0 8px;">Score 85–94</p>
+          <p style="font-size:12px;color:#475569;margin:0;">Preferred customer</p>
+        </div>
+        <div class="glass" style="border-radius:16px;padding:24px;border-color:rgba(186,230,253,0.2)!important;transition:transform .2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(186,230,253,0.1);color:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:12px;">P</div>
+          <h3 style="font-size:20px;font-weight:900;color:white;margin:0 0 4px;">Platinum</h3>
+          <p style="font-size:13px;font-weight:700;color:#bae6fd;margin:0 0 8px;">Score 95–100</p>
+          <p style="font-size:12px;color:#475569;margin:0;">Businesses compete for you</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- For Consumers -->
+  <div style="max-width:1100px;margin:0 auto;padding:80px 24px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <span style="border-radius:99px;border:1px solid rgba(37,99,235,0.3);background:rgba(15,34,80,0.4);padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">For Consumers</span>
+    </div>
+    <h2 style="text-align:center;font-size:clamp(28px,4vw,48px);font-weight:900;color:white;margin:0 0 16px;letter-spacing:-0.02em;">Good behavior has its rewards</h2>
+    <p style="text-align:center;color:#94a3b8;max-width:520px;margin:0 auto 56px;font-size:16px;line-height:1.6;">Build a strong score and unlock exclusive perks from the service providers you rely on.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+      <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">📈</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Build Your Score</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Every good interaction adds to your reputation score. Prove you're a great client across all providers.</p></div>
+      <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">🏅</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Earn Rewards</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Reach Gold and Platinum tiers to unlock exclusive discounts, priority booking, and partner perks.</p></div>
+      <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">🔒</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Own Your Profile</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Claim your profile, dispute inaccurate reviews, and control your reputation narrative.</p></div>
+    </div>
+  </div>
+
+  <!-- CTA Email Capture -->
+  <div style="background:rgba(4,13,33,0.6);padding:80px 0;">
+    <div style="max-width:680px;margin:0 auto;padding:0 24px;text-align:center;">
+      <div class="glass" style="border-radius:24px;padding:56px 48px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-60px;left:-60px;width:200px;height:200px;border-radius:50%;background:rgba(37,99,235,0.08);filter:blur(60px);pointer-events:none;"></div>
+        <div style="position:absolute;bottom:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(6,182,212,0.06);filter:blur(60px);pointer-events:none;"></div>
+        <span style="border-radius:99px;border:1px solid rgba(245,158,11,0.4);background:rgba(120,53,15,0.25);padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fbbf24;display:inline-block;margin-bottom:20px;">Founding Member Access</span>
+        <h2 style="font-size:clamp(28px,4vw,44px);font-weight:900;color:white;margin:0 0 16px;letter-spacing:-0.02em;">
+          Join the waitlist.<br><span class="gradient-text">Shape the platform.</span>
+        </h2>
+        <p style="color:#94a3b8;margin:0 0 32px;line-height:1.65;">Founding businesses get free access for the first year, locked-in pricing forever, and direct input on platform features. Only 75 spots available in the Treasure Valley.</p>
+        <div id="email-form">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input id="email-input" type="email" class="input-field" placeholder="Enter your email address" style="flex:1;min-width:220px;" />
+            <button class="btn-primary" onclick="submitEmail()" style="white-space:nowrap;">Claim My Spot</button>
+          </div>
+          <p style="font-size:12px;color:#334155;margin-top:12px;">No spam. No credit card. Cancel anytime.</p>
+        </div>
+        <div id="email-success" style="display:none;background:rgba(6,78,59,0.3);border:1px solid rgba(52,211,153,0.25);border-radius:12px;padding:24px;">
+          <div style="font-size:28px;margin-bottom:8px;">🎉</div>
+          <p style="font-size:17px;font-weight:700;color:white;margin:0 0 6px;">You're on the list!</p>
+          <p id="email-confirm" style="font-size:13px;color:#94a3b8;margin:0;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="border-top:1px solid rgba(15,34,80,0.8);padding:36px 24px;">
+    <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="showPage('landing')">
+        <div style="width:28px;height:28px;background:#2563eb;border-radius:7px;display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" fill="white" fill-opacity="0.9"/><path d="M8 5L11 6.75V10.25L8 12L5 10.25V6.75L8 5Z" fill="white"/></svg>
+        </div>
+        <span style="font-size:15px;font-weight:800;color:white;">Rep<span style="color:#60a5fa;">flip</span></span>
+      </div>
+      <p style="font-size:13px;color:#334155;margin:0;">© 2026 Repflip, Inc. All rights reserved.</p>
+      <div style="display:flex;gap:20px;">
+        <a href="#" style="font-size:13px;color:#334155;text-decoration:none;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#334155'">Privacy</a>
+        <a href="#" style="font-size:13px;color:#334155;text-decoration:none;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#334155'">Terms</a>
+        <a href="#" style="font-size:13px;color:#334155;text-decoration:none;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#334155'">Contact</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ DASHBOARD PAGE ═══════════════════════════════════════ -->
+<div id="page-dashboard" class="page">
+  <div style="max-width:900px;margin:0 auto;padding:96px 24px 60px;">
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="height:3px;width:24px;border-radius:99px;background:#2563eb;"></div>
+        <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">Business Dashboard</span>
+      </div>
+      <h1 style="font-size:clamp(32px,4vw,48px);font-weight:900;color:white;margin:0 0 8px;letter-spacing:-0.02em;">Consumer Lookup</h1>
+      <p style="color:#64748b;font-size:15px;margin:0;">Search any consumer before you accept their booking.</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <div style="position:relative;flex:1;">
+        <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="search-input" type="text" class="input-field" placeholder="Search by name or phone…" style="padding-left:42px;" oninput="filterConsumers()" />
+      </div>
+      <button class="btn-primary" onclick="filterConsumers()" style="padding:14px 24px;font-size:14px;">Search</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:32px;">
+      <span style="font-size:11px;color:#334155;padding-top:5px;">Try:</span>
+      <span onclick="quickSearch('Marcus Thompson')" style="border-radius:99px;border:1px solid rgba(37,99,235,0.25);background:rgba(15,34,80,0.4);padding:4px 12px;font-size:12px;color:#94a3b8;cursor:pointer;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">Marcus Thompson</span>
+      <span onclick="quickSearch('Sarah Chen')" style="border-radius:99px;border:1px solid rgba(37,99,235,0.25);background:rgba(15,34,80,0.4);padding:4px 12px;font-size:12px;color:#94a3b8;cursor:pointer;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">Sarah Chen</span>
+      <span onclick="quickSearch('DeShawn Williams')" style="border-radius:99px;border:1px solid rgba(37,99,235,0.25);background:rgba(15,34,80,0.4);padding:4px 12px;font-size:12px;color:#94a3b8;cursor:pointer;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">DeShawn Williams</span>
+      <span onclick="quickSearch('Rebecca Okafor')" style="border-radius:99px;border:1px solid rgba(37,99,235,0.25);background:rgba(15,34,80,0.4);padding:4px 12px;font-size:12px;color:#94a3b8;cursor:pointer;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">Rebecca Okafor</span>
+    </div>
+
+    <div id="consumer-cards"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SUBMIT REVIEW ═══════════════════════════════════════ -->
+<div id="page-submit" class="page">
+  <div style="max-width:680px;margin:0 auto;padding:96px 24px 60px;">
+    <div style="margin-bottom:32px;">
+      <span onclick="showPage('dashboard')" style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#60a5fa;cursor:pointer;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">← Dashboard</span>
+      <h1 style="font-size:clamp(32px,4vw,48px);font-weight:900;color:white;margin:12px 0 8px;letter-spacing:-0.02em;">Submit Review</h1>
+      <p style="color:#64748b;font-size:15px;margin:0;">Your feedback shapes the trust economy for every service business.</p>
+    </div>
+
+    <div id="review-form">
+      <!-- Consumer Select -->
+      <div class="glass" style="border-radius:16px;padding:20px;margin-bottom:16px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin:0 0 14px;">Consumer</p>
+        <div id="consumer-select" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+      </div>
+
+      <!-- Star Rating -->
+      <div class="glass" style="border-radius:16px;padding:20px;margin-bottom:16px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin:0 0 20px;">Overall Rating <span style="color:#ef4444;">*</span></p>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <div id="star-row" style="display:flex;gap:10px;"></div>
+          <div id="star-label" style="height:24px;font-size:15px;font-weight:600;color:#f59e0b;"></div>
+        </div>
+      </div>
+
+      <!-- Behavioral Tags -->
+      <div class="glass" style="border-radius:16px;padding:20px;margin-bottom:16px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin:0 0 16px;">Behavioral Tags</p>
+        <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#34d399;margin:0 0 8px;">Positive</p>
+        <div id="pos-tags" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+        <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#f87171;margin:0 0 8px;">Concerns</p>
+        <div id="neg-tags" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+
+      <!-- Notes -->
+      <div class="glass" style="border-radius:16px;padding:20px;margin-bottom:20px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin:0 0 12px;">Notes <span style="font-size:11px;font-weight:400;color:#334155;normal-case:true;text-transform:none;">(optional)</span></p>
+        <textarea id="review-notes" class="input-field" rows="4" placeholder="Describe the interaction — what went well or didn't. Other businesses rely on your honesty." style="resize:none;"></textarea>
+        <p style="font-size:11px;color:#334155;margin-top:8px;">Be honest and factual. Reviews are verified against booking data.</p>
+      </div>
+
+      <button id="submit-btn" onclick="submitReview()" class="btn-primary" style="width:100%;padding:16px;font-size:16px;justify-content:center;display:flex;align-items:center;gap:10px;opacity:0.4;cursor:not-allowed;" disabled>
+        Submit Review
+      </button>
+      <p id="rating-hint" style="text-align:center;font-size:12px;color:#334155;margin-top:8px;">Select a star rating to submit</p>
+    </div>
+
+    <!-- Success State -->
+    <div id="review-success" style="display:none;">
+      <div class="glass" style="border-radius:24px;padding:48px;text-align:center;">
+        <div style="width:80px;height:80px;border-radius:50%;background:rgba(6,78,59,0.3);border:1px solid rgba(52,211,153,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:#34d399;">✓</div>
+        <h2 style="font-size:24px;font-weight:900;color:white;margin:0 0 8px;">Review Submitted</h2>
+        <p id="success-name" style="color:#94a3b8;margin:0 0 4px;"></p>
+        <p style="color:#475569;font-size:13px;margin:0 0 28px;">It will be reflected in their Repflip score within 24 hours.</p>
+        <div id="success-summary" style="background:rgba(15,34,80,0.5);border:1px solid rgba(37,99,235,0.2);border-radius:12px;padding:16px;margin-bottom:24px;"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn-primary" onclick="showPage('dashboard')" style="width:100%;padding:14px;">Back to Dashboard</button>
+          <button class="btn-secondary" onclick="resetReview()" style="width:100%;padding:14px;">Submit Another Review</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ CONSUMER PROFILE ═══════════════════════════════════════ -->
+<div id="page-profile" class="page">
+  <div style="max-width:1100px;margin:0 auto;padding:96px 24px 60px;">
+    <!-- Consumer Switcher -->
+    <div id="profile-switcher" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;"></div>
+
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;">
+      <!-- Left Panel -->
+      <div class="glass" id="profile-left" style="border-radius:20px;padding:28px;position:sticky;top:84px;"></div>
+
+      <!-- Right Panel -->
+      <div>
+        <div class="glass" style="border-radius:20px;padding:24px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <h2 style="font-size:18px;font-weight:900;color:white;margin:0;" id="review-history-title">Review History</h2>
+            <span id="review-count-badge" style="font-size:12px;color:#475569;"></span>
+          </div>
+          <div style="display:flex;gap:4px;background:rgba(15,34,80,0.4);border:1px solid rgba(37,99,235,0.15);border-radius:10px;padding:4px;margin-bottom:20px;">
+            <button class="tab-btn active" id="tab-all" onclick="setTab('all')">All</button>
+            <button class="tab-btn" id="tab-positive" onclick="setTab('positive')">Positive</button>
+            <button class="tab-btn" id="tab-concerns" onclick="setTab('concerns')">Concerns</button>
+          </div>
+          <div id="profile-reviews"></div>
+        </div>
+        <div class="glass" id="rewards-card" style="border-radius:16px;padding:20px;position:relative;overflow:hidden;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────── DATA ───────────────────
+const CONSUMERS = [
+  { id:'1', name:'Marcus Thompson', phone:'(312) 555-0142', email:'marcus.t@email.com', city:'Boise, ID', score:94, tier:'Platinum', points:4820, since:'Jan 2024',
+    reviews:[
+      { id:'r1', biz:'ProClean Services', type:'House Cleaning', rating:5, tags:['Paid immediately','Easy to communicate','Respectful'], notes:'Marcus was incredibly easy to work with. Tipped generously and left great feedback.', date:'Mar 28, 2026' },
+      { id:'r2', biz:'Elite HVAC Solutions', type:'HVAC Repair', rating:5, tags:['Showed up on time','Paid immediately','Easy to communicate'], notes:'Had the house ready for us, payment processed on the spot. Would service again.', date:'Feb 14, 2026' },
+      { id:'r3', biz:'Greenfield Landscaping', type:'Landscaping', rating:5, tags:['Respectful','Easy to communicate','Paid immediately'], notes:'', date:'Jan 5, 2026' },
+    ]
+  },
+  { id:'2', name:'Sarah Chen', phone:'(415) 555-0287', email:'s.chen@email.com', city:'Nampa, ID', score:81, tier:'Gold', points:2140, since:'Mar 2024',
+    reviews:[
+      { id:'r4', biz:'Apex Plumbing', type:'Plumbing', rating:4, tags:['Paid immediately','Easy to communicate'], notes:'Good client, slight communication lag at first but resolved quickly.', date:'Apr 2, 2026' },
+      { id:'r5', biz:'SunBright Solar', type:'Solar Installation', rating:4, tags:['Respectful','Showed up on time'], notes:'', date:'Feb 22, 2026' },
+      { id:'r6', biz:'FreshCoat Painters', type:'Painting', rating:3, tags:['Scope creep'], notes:'Added significant scope mid-project without discussion. Paid but pushed boundaries.', date:'Dec 10, 2025' },
+    ]
+  },
+  { id:'3', name:'DeShawn Williams', phone:'(713) 555-0093', email:'deshawn.w@email.com', city:'Meridian, ID', score:62, tier:'Silver', points:880, since:'Jun 2024',
+    reviews:[
+      { id:'r7', biz:'Swift Electric Co.', type:'Electrical', rating:3, tags:['Paid immediately'], notes:'Payment was fine but communication was difficult to schedule.', date:'Mar 15, 2026' },
+      { id:'r8', biz:'TrueBlue Roofing', type:'Roofing', rating:2, tags:['No-show','Scope creep'], notes:'Missed initial walkthrough without notice. Project eventually completed.', date:'Jan 30, 2026' },
+    ]
+  },
+  { id:'4', name:'Rebecca Okafor', phone:'(202) 555-0318', email:'r.okafor@email.com', city:'Eagle, ID', score:38, tier:'Bronze', points:210, since:'Sep 2024',
+    reviews:[
+      { id:'r9', biz:'ClearView Windows', type:'Window Installation', rating:1, tags:['No-show','Disputed payment','Aggressive'], notes:'Did not show for scheduled appointment, disputed invoice, and was combative via text.', date:'Mar 5, 2026' },
+      { id:'r10', biz:'HandyPros LLC', type:'General Contracting', rating:2, tags:['Disputed payment'], notes:'Attempted to dispute legitimate charges. Resolved after documentation provided.', date:'Nov 18, 2025' },
+    ]
+  },
+];
+
+const TIER_CFG = {
+  Platinum: { color:'#bae6fd', pillBg:'rgba(14,116,144,0.2)', pillBorder:'rgba(125,211,252,0.3)', glowColor:'rgba(186,230,253,0.15)', ringColor:'#7dd3fc' },
+  Gold:     { color:'#fbbf24', pillBg:'rgba(120,53,15,0.25)', pillBorder:'rgba(245,158,11,0.35)', glowColor:'rgba(245,158,11,0.18)', ringColor:'#f59e0b' },
+  Silver:   { color:'#d1d5db', pillBg:'rgba(71,85,105,0.25)', pillBorder:'rgba(156,163,175,0.3)', glowColor:'rgba(156,163,175,0.12)', ringColor:'#9ca3af' },
+  Bronze:   { color:'#e8a05a', pillBg:'rgba(120,53,15,0.2)',  pillBorder:'rgba(205,127,50,0.35)', glowColor:'rgba(205,127,50,0.15)', ringColor:'#cd7f32' },
+};
+
+const NEG_TAGS = new Set(['No-show','Disputed payment','Aggressive','Scope creep']);
+const STAR_LABELS = ['','Poor','Fair','Good','Great','Excellent'];
+const POS_TAGS_LIST = ['Showed up on time','Paid immediately','Easy to communicate','Respectful'];
+const NEG_TAGS_LIST = ['No-show','Disputed payment','Aggressive','Scope creep'];
+
+// ─────────────────── NAV ───────────────────
+let currentPage = 'landing';
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  currentPage = page;
+  window.scrollTo(0, 0);
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'submit') initSubmitForm();
+  if (page === 'profile') { currentProfileId = '1'; renderProfile(); }
+}
+
+// ─────────────────── LANDING ───────────────────
+function submitEmail() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  document.getElementById('email-form').style.display = 'none';
+  document.getElementById('email-success').style.display = 'block';
+  document.getElementById('email-confirm').textContent = 'We\'ll reach out at ' + email + ' when your founding membership is ready.';
+}
+
+// ─────────────────── DASHBOARD ───────────────────
+function stars(rating, size=14) {
+  let html = '';
+  for (let i=1;i<=5;i++) html += `<svg class="${i<=rating?'star-on':'star-off'}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+  return `<div style="display:flex;gap:2px;">${html}</div>`;
+}
+
+function tagChip(tag) {
+  const neg = NEG_TAGS.has(tag);
+  return `<span style="border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;${neg?'background:rgba(127,29,29,0.3);color:#f87171;border:1px solid rgba(248,113,113,0.2);':'background:rgba(6,78,59,0.3);color:#34d399;border:1px solid rgba(52,211,153,0.2);'}">${neg?'✕':'✓'} ${tag}</span>`;
+}
+
+function scoreRingSVG(score, color, size=128) {
+  const r = size*0.44;
+  const circ = 2*Math.PI*r;
+  const prog = (score/100)*circ;
+  const cx = size/2, cy = size/2;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(37,99,235,0.08)" stroke-width="${size*0.07}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${size*0.07}" stroke-linecap="round" stroke-dasharray="${prog} ${circ}" style="filter:drop-shadow(0 0 6px ${color}80);"/>
+  </svg>`;
+}
+
+function renderDashboard(filter='') {
+  const filtered = filter
+    ? CONSUMERS.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()) || c.phone.includes(filter))
+    : CONSUMERS;
+  const container = document.getElementById('consumer-cards');
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="glass" style="border-radius:16px;padding:48px;text-align:center;"><div style="font-size:36px;margin-bottom:12px;">🔍</div><h3 style="color:white;font-size:17px;font-weight:700;margin:0 0 8px;">No results found</h3><p style="color:#64748b;font-size:14px;margin:0;">No consumer matches "${filter}". They may not have a Repflip profile yet.</p></div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(c => {
+    const cfg = TIER_CFG[c.tier];
+    const allTags = c.reviews.flatMap(r=>r.tags);
+    const posTags = [...new Set(allTags.filter(t=>!NEG_TAGS.has(t)))].slice(0,4);
+    const negTags = [...new Set(allTags.filter(t=>NEG_TAGS.has(t)))];
+    const avgRating = c.reviews.length ? (c.reviews.reduce((a,r)=>a+r.rating,0)/c.reviews.length).toFixed(1) : '—';
+    return `
+    <div class="glass" style="border-radius:20px;overflow:hidden;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+      <div style="padding:24px 24px 0;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:${cfg.glowColor};filter:blur(40px);pointer-events:none;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:52px;height:52px;border-radius:14px;background:${cfg.pillBg};border:1px solid ${cfg.pillBorder};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:${cfg.color};">${c.name[0]}</div>
+            <div>
+              <h2 style="font-size:18px;font-weight:800;color:white;margin:0 0 4px;">${c.name}</h2>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:13px;color:#64748b;">${c.phone}</span>
+                <span style="color:#1e3a5f;">·</span>
+                <span style="font-size:13px;color:#64748b;">${c.email}</span>
+              </div>
+            </div>
+          </div>
+          <span class="tier-pill" style="background:${cfg.pillBg};color:${cfg.color};border:1px solid ${cfg.pillBorder};">${c.tier}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:24px;padding:24px;flex-wrap:wrap;align-items:center;">
+        <div class="score-ring" style="border-radius:50%;position:relative;flex-shrink:0;">
+          ${scoreRingSVG(c.score, cfg.ringColor)}
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <span style="font-size:36px;font-weight:900;color:white;line-height:1;">${c.score}</span>
+            <span style="font-size:10px;color:#475569;">/ 100</span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:220px;">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${c.reviews.length}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Reviews</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${avgRating}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Avg Rating</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:18px;font-weight:900;color:${cfg.color};">${c.points.toLocaleString()}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Points</div></div>
+          </div>
+          <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;margin:0 0 8px;">Behavioral Tags</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${posTags.map(t=>tagChip(t)).join('')}
+            ${negTags.map(t=>tagChip(t)).join('')}
+            ${posTags.length===0&&negTags.length===0?'<span style="font-size:12px;color:#334155;">No tags yet</span>':''}
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid rgba(15,34,80,0.8);padding:20px 24px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;margin:0 0 12px;">Review History</p>
+        ${c.reviews.map(r=>`
+          <div style="border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+              <div><span style="font-size:13px;font-weight:700;color:white;">${r.biz}</span> <span style="font-size:11px;color:#475569;margin-left:4px;">${r.type}</span></div>
+              <span style="font-size:11px;color:#334155;white-space:nowrap;">${r.date}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">${stars(r.rating,13)}</div>
+            ${r.notes?`<p style="font-size:12px;color:#64748b;line-height:1.5;margin:0 0 8px;border-left:2px solid rgba(37,99,235,0.25);padding-left:8px;">${r.notes}</p>`:''}
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">${r.tags.map(t=>tagChip(t)).join('')}</div>
+          </div>`).join('')}
+      </div>
+      <div style="border-top:1px solid rgba(15,34,80,0.8);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <span onclick="viewProfile('${c.id}')" style="font-size:13px;font-weight:600;color:#60a5fa;cursor:pointer;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">View Full Profile →</span>
+        <button class="btn-primary" onclick="showPage('submit')" style="padding:10px 20px;font-size:13px;">Submit Review</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterConsumers() {
+  const q = document.getElementById('search-input').value.trim();
+  renderDashboard(q);
+}
+
+function quickSearch(name) {
+  document.getElementById('search-input').value = name;
+  renderDashboard(name);
+}
+
+// ─────────────────── SUBMIT REVIEW ───────────────────
+let selectedConsumerId = '1';
+let selectedRating = 0;
+let selectedTags = new Set();
+
+function initSubmitForm() {
+  // Consumer select
+  const sel = document.getElementById('consumer-select');
+  sel.innerHTML = CONSUMERS.map(c=>`
+    <div id="csel-${c.id}" onclick="selectConsumer('${c.id}')" style="display:flex;align-items:center;gap:10px;border-radius:10px;border:1px solid ${selectedConsumerId===c.id?'rgba(37,99,235,0.5)':'rgba(15,34,80,0.9)'};background:${selectedConsumerId===c.id?'rgba(37,99,235,0.12)':'rgba(10,26,62,0.4)'};padding:10px 12px;cursor:pointer;transition:all .15s;">
+      <div style="width:36px;height:36px;flex-shrink:0;border-radius:8px;background:rgba(37,99,235,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#93c5fd;">${c.name[0]}</div>
+      <div style="min-width:0;flex:1;">
+        <p style="font-size:13px;font-weight:600;color:white;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</p>
+        <p style="font-size:11px;color:#475569;margin:0;">${c.city}</p>
+      </div>
+      ${selectedConsumerId===c.id?'<div style="width:20px;height:20px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>':''}
+    </div>`).join('');
+
+  // Stars
+  const starRow = document.getElementById('star-row');
+  starRow.innerHTML = [1,2,3,4,5].map(i=>`
+    <svg id="star-${i}" onmouseenter="hoverStar(${i})" onmouseleave="hoverStar(0)" onclick="rateStar(${i})" style="width:44px;height:44px;cursor:pointer;transition:transform .1s;${i<=selectedRating?'color:#f59e0b;filter:drop-shadow(0 0 8px rgba(245,158,11,0.5));':'color:#1e3a5f;'}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`).join('');
+
+  // Tags
+  document.getElementById('pos-tags').innerHTML = POS_TAGS_LIST.map(t=>tagToggleBtn(t,true)).join('');
+  document.getElementById('neg-tags').innerHTML = NEG_TAGS_LIST.map(t=>tagToggleBtn(t,false)).join('');
+}
+
+function tagToggleBtn(tag, pos) {
+  const active = selectedTags.has(tag);
+  const baseStyle = active
+    ? (pos ? 'background:rgba(6,78,59,0.4);color:#34d399;border:1px solid rgba(52,211,153,0.4);' : 'background:rgba(127,29,29,0.4);color:#f87171;border:1px solid rgba(248,113,113,0.4);')
+    : 'background:rgba(10,26,62,0.5);color:#64748b;border:1px solid rgba(15,34,80,0.9);';
+  return `<button onclick="toggleTag('${tag}',${pos})" style="border-radius:99px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;${baseStyle}">${active?(pos?'✓ ':'✕ '):''}${tag}</button>`;
+}
+
+function selectConsumer(id) {
+  selectedConsumerId = id;
+  initSubmitForm();
+}
+
+function hoverStar(n) {
+  for (let i=1;i<=5;i++) {
+    const s = document.getElementById('star-'+i);
+    if(!s) continue;
+    const active = i <= (n || selectedRating);
+    s.style.color = active ? '#f59e0b' : '#1e3a5f';
+    s.style.filter = active ? 'drop-shadow(0 0 8px rgba(245,158,11,0.5))' : '';
+    s.style.transform = active ? 'scale(1.15)' : 'scale(1)';
+  }
+  document.getElementById('star-label').textContent = n ? STAR_LABELS[n] : (selectedRating ? STAR_LABELS[selectedRating] : '');
+}
+
+function rateStar(n) {
+  selectedRating = n;
+  hoverStar(n);
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+  document.getElementById('rating-hint').style.display = 'none';
+}
+
+function toggleTag(tag, pos) {
+  if(selectedTags.has(tag)) selectedTags.delete(tag);
+  else selectedTags.add(tag);
+  document.getElementById('pos-tags').innerHTML = POS_TAGS_LIST.map(t=>tagToggleBtn(t,true)).join('');
+  document.getElementById('neg-tags').innerHTML = NEG_TAGS_LIST.map(t=>tagToggleBtn(t,false)).join('');
+}
+
+function submitReview() {
+  if(!selectedRating) return;
+  const btn = document.getElementById('submit-btn');
+  btn.innerHTML = '<svg class="spin" width="20" height="20" fill="none" viewBox="0 0 24 24"><circle opacity=".25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path opacity=".75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Submitting…';
+  btn.disabled = true;
+  setTimeout(()=>{
+    const c = CONSUMERS.find(x=>x.id===selectedConsumerId);
+    document.getElementById('review-form').style.display='none';
+    document.getElementById('review-success').style.display='block';
+    document.getElementById('success-name').textContent = `Your review of ${c.name} has been recorded.`;
+    const tags = [...selectedTags];
+    document.getElementById('success-summary').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:13px;color:#64748b;">Rating submitted</span>
+        ${stars(selectedRating,16)}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${tags.map(t=>tagChip(t)).join('')}${tags.length===0?'<span style="font-size:12px;color:#334155;">No tags selected</span>':''}</div>
+    `;
+  }, 1100);
+}
+
+function resetReview() {
+  selectedRating = 0;
+  selectedTags = new Set();
+  document.getElementById('review-form').style.display='block';
+  document.getElementById('review-success').style.display='none';
+  initSubmitForm();
+}
+
+// ─────────────────── CONSUMER PROFILE ───────────────────
+let currentProfileId = '1';
+let profileTab = 'all';
+let profileClaimed = false;
+
+function viewProfile(id) {
+  currentProfileId = id;
+  showPage('profile');
+}
+
+function setTab(tab) {
+  profileTab = tab;
+  ['all','positive','concerns'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    el.classList.toggle('active', t===tab);
+  });
+  renderProfileReviews();
+}
+
+function renderProfile() {
+  const c = CONSUMERS.find(x=>x.id===currentProfileId) || CONSUMERS[0];
+  const cfg = TIER_CFG[c.tier];
+
+  // Switcher
+  document.getElementById('profile-switcher').innerHTML = CONSUMERS.map(x=>`
+    <span onclick="switchProfile('${x.id}')" style="border-radius:99px;border:1px solid ${x.id===currentProfileId?'rgba(37,99,235,0.5)':'rgba(15,34,80,0.9)'};background:${x.id===currentProfileId?'rgba(37,99,235,0.15)':'rgba(10,26,62,0.4)'};padding:6px 14px;font-size:12px;color:${x.id===currentProfileId?'#93c5fd':'#64748b'};cursor:pointer;transition:all .15s;">${x.name}</span>`).join('');
+
+  // Score ring
+  const r = 56, circ = 2*Math.PI*r, prog = (c.score/100)*circ;
+  const avgRating = c.reviews.length ? (c.reviews.reduce((a,r)=>a+r.rating,0)/c.reviews.length).toFixed(1) : '—';
+  const allTags = c.reviews.flatMap(r=>r.tags);
+  const posCounts = {}, negCounts = {};
+  allTags.forEach(t=>{ if(NEG_TAGS.has(t)) negCounts[t]=(negCounts[t]||0)+1; else posCounts[t]=(posCounts[t]||0)+1; });
+  const topPos = Object.entries(posCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const topNeg = Object.entries(negCounts).sort((a,b)=>b[1]-a[1]).slice(0,2);
+  const pointsPct = Math.min((c.points/5000)*100,100);
+
+  document.getElementById('profile-left').innerHTML = `
+    <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:${cfg.glowColor};filter:blur(50px);pointer-events:none;"></div>
+    <div style="text-align:center;margin-bottom:20px;position:relative;">
+      <div style="width:60px;height:60px;border-radius:16px;background:${cfg.pillBg};border:1px solid ${cfg.pillBorder};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:${cfg.color};margin:0 auto 12px;">${c.name[0]}</div>
+      <h1 style="font-size:18px;font-weight:900;color:white;margin:0 0 4px;">${c.name}</h1>
+      <p style="font-size:13px;color:#64748b;margin:0;">${c.city}</p>
+      <p style="font-size:11px;color:#334155;margin-top:2px;">Profile created ${c.since}</p>
+    </div>
+    <div class="score-ring" style="border-radius:50%;display:flex;justify-content:center;margin-bottom:20px;position:relative;">
+      <div style="position:relative;width:176px;height:176px;">
+        <svg style="position:absolute;width:176px;height:176px;transform:rotate(-90deg);" viewBox="0 0 130 130">
+          <circle cx="65" cy="65" r="${r}" fill="none" stroke="rgba(37,99,235,0.08)" stroke-width="10"/>
+          <circle cx="65" cy="65" r="${r}" fill="none" stroke="${cfg.ringColor}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${prog} ${circ}" style="filter:drop-shadow(0 0 8px ${cfg.ringColor}80);"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <span style="font-size:56px;font-weight:900;color:white;line-height:1;">${c.score}</span>
+          <span style="font-size:12px;color:#475569;margin-top:4px;">out of 100</span>
+        </div>
+      </div>
+    </div>
+    <div style="border-radius:10px;border:1px solid ${cfg.pillBorder};background:${cfg.pillBg};padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
+      <div style="width:24px;height:24px;border-radius:6px;background:${cfg.pillBg};border:1px solid ${cfg.pillBorder};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:${cfg.color};">${c.tier[0]}</div>
+      <span style="font-size:13px;font-weight:700;color:${cfg.color};">${c.tier} Member</span>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;">Points Balance</span>
+        <span style="font-size:13px;font-weight:700;color:white;">${c.points.toLocaleString()} pts</span>
+      </div>
+      <div style="height:7px;background:rgba(15,34,80,0.8);border-radius:99px;overflow:hidden;">
+        <div style="height:100%;width:${pointsPct}%;background:linear-gradient(90deg,#2563eb,#06b6d4);border-radius:99px;box-shadow:0 0 8px rgba(37,99,235,0.5);"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#334155;margin-top:4px;"><span>0</span><span>5,000 pts max</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+      <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${c.reviews.length}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Reviews</div></div>
+      <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${avgRating}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Avg Rating</div></div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;margin:0 0 8px;">Top Traits</p>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${topPos.map(([t,n])=>`<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(6,78,59,0.2);border:1px solid rgba(52,211,153,0.15);border-radius:7px;padding:7px 10px;"><span style="font-size:11px;color:#34d399;font-weight:600;">${t}</span><span style="font-size:10px;color:rgba(52,211,153,0.5);">${n}×</span></div>`).join('')}
+        ${topNeg.map(([t,n])=>`<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(127,29,29,0.2);border:1px solid rgba(248,113,113,0.15);border-radius:7px;padding:7px 10px;"><span style="font-size:11px;color:#f87171;font-weight:600;">${t}</span><span style="font-size:10px;color:rgba(248,113,113,0.5);">${n}×</span></div>`).join('')}
+      </div>
+    </div>
+    <div id="claim-btn-area">
+      ${profileClaimed
+        ? `<div style="border-radius:10px;border:1px solid rgba(52,211,153,0.3);background:rgba(6,78,59,0.25);padding:12px;text-align:center;"><p style="font-size:13px;font-weight:700;color:#34d399;margin:0;">✓ Profile Claimed</p><p style="font-size:11px;color:rgba(52,211,153,0.5);margin:2px 0 0;">Verification pending</p></div>`
+        : `<button onclick="claimProfile()" style="width:100%;border-radius:10px;border:1px solid rgba(37,99,235,0.35);background:rgba(37,99,235,0.12);color:#93c5fd;font-size:13px;font-weight:700;padding:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(37,99,235,0.22)';this.style.color='white'" onmouseout="this.style.background='rgba(37,99,235,0.12)';this.style.color='#93c5fd'">Claim This Profile</button>`}
+    </div>`;
+
+  // Rewards card
+  document.getElementById('rewards-card').innerHTML = `
+    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(40px);pointer-events:none;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:18px;">🏅</span><span style="font-size:14px;font-weight:700;color:white;">${c.points.toLocaleString()} points available</span></div>
+        <p style="font-size:13px;color:#64748b;margin:0;">Redeem for discounts with local partner businesses.${c.tier!=='Platinum'?' Keep earning to reach the next tier.':''}</p>
+      </div>
+      <button style="border-radius:10px;border:1px solid rgba(245,158,11,0.35);background:rgba(120,53,15,0.25);color:#fbbf24;font-size:13px;font-weight:700;padding:10px 20px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.background='rgba(120,53,15,0.4)'" onmouseout="this.style.background='rgba(120,53,15,0.25)'">Redeem</button>
+    </div>`;
+
+  document.getElementById('review-count-badge').textContent = c.reviews.length + ' reviews';
+  profileTab = 'all';
+  ['all','positive','concerns'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t==='all'));
+  renderProfileReviews();
+}
+
+function renderProfileReviews() {
+  const c = CONSUMERS.find(x=>x.id===currentProfileId) || CONSUMERS[0];
+  let reviews = c.reviews;
+  if (profileTab==='positive') reviews = reviews.filter(r=>r.tags.some(t=>!NEG_TAGS.has(t)));
+  if (profileTab==='concerns') reviews = reviews.filter(r=>r.tags.some(t=>NEG_TAGS.has(t)));
+  const container = document.getElementById('profile-reviews');
+  if (reviews.length===0) {
+    container.innerHTML = '<div style="padding:32px 0;text-align:center;font-size:13px;color:#334155;">No reviews in this category</div>';
+    return;
+  }
+  container.innerHTML = reviews.map(r=>`
+    <div style="border-radius:14px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:18px;margin-bottom:12px;transition:all .15s;" onmouseover="this.style.borderColor='rgba(37,99,235,0.3)'" onmouseout="this.style.borderColor='rgba(15,34,80,0.9)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+        <div><h3 style="font-size:14px;font-weight:700;color:white;margin:0 0 2px;">${r.biz}</h3><p style="font-size:11px;color:#475569;margin:0;">${r.type}</p></div>
+        <div style="text-align:right;flex-shrink:0;">${stars(r.rating,15)}<p style="font-size:11px;color:#334155;margin:4px 0 0;">${r.date}</p></div>
+      </div>
+      ${r.notes?`<p style="font-size:13px;color:#64748b;line-height:1.6;margin:0 0 10px;border-left:2px solid rgba(37,99,235,0.3);padding-left:10px;font-style:italic;">"${r.notes}"</p>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">${r.tags.map(t=>tagChip(t)).join('')}</div>
+    </div>`).join('');
+}
+
+function switchProfile(id) {
+  currentProfileId = id;
+  profileClaimed = false;
+  renderProfile();
+}
+
+function claimProfile() {
+  const btn = document.querySelector('#claim-btn-area button');
+  if(!btn) return;
+  btn.textContent = 'Verifying…';
+  btn.disabled = true;
+  btn.style.opacity='0.6';
+  setTimeout(()=>{
+    profileClaimed = true;
+    document.getElementById('claim-btn-area').innerHTML = `<div style="border-radius:10px;border:1px solid rgba(52,211,153,0.3);background:rgba(6,78,59,0.25);padding:12px;text-align:center;"><p style="font-size:13px;font-weight:700;color:#34d399;margin:0;">✓ Profile Claimed</p><p style="font-size:11px;color:rgba(52,211,153,0.5);margin:2px 0 0;">Verification pending</p></div>`;
+  }, 900);
+}
+
+// ─────────────────── INIT ───────────────────
+renderDashboard();
+initSubmitForm();
+</script>
+</body>
+</html>
