@@ -54,8 +54,8 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
   const negativeTags = consumer.reviews
     .flatMap((r) => r.tags)
     .filter((t) => ["No-show", "Disputed payment", "Aggressive", "Scope creep"].includes(t));
-  const uniquePos = [...new Set(positiveTags)];
-  const uniqueNeg = [...new Set(negativeTags)];
+  const uniquePos = Array.from(new Set(positiveTags));
+  const uniqueNeg = Array.from(new Set(negativeTags));
 
   return (
     <div className="glass-card overflow-hidden rounded-2xl shadow-card-glow">
