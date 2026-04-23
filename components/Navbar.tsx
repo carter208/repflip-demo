@@ -7,6 +7,7 @@ const links = [
   { href: "/dashboard", label: "Business Dashboard" },
   { href: "/profile", label: "Consumer Profile" },
   { href: "/submit-review", label: "Submit Review" },
+  { href: "/about", label: "About" },
 ];
 
 export default function Navbar() {

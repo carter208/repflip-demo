@@ -65,6 +65,7 @@ tailwind.config = {
       <span class="nav-link" id="nav-dashboard" onclick="showPage('dashboard')">Business Dashboard</span>
       <span class="nav-link" id="nav-profile" onclick="showPage('profile')">Consumer Profile</span>
       <span class="nav-link" id="nav-submit" onclick="showPage('submit')">Submit Review</span>
+      <span class="nav-link" id="nav-about" onclick="showPage('about')">About</span>
     </div>
     <button class="btn-primary" style="padding:8px 18px;font-size:14px;" onclick="showPage('dashboard')">For Businesses</button>
   </div>
@@ -157,7 +158,8 @@ tailwind.config = {
       <div style="text-align:center;margin-bottom:16px;">
         <span style="border-radius:99px;border:1px solid rgba(37,99,235,0.3);background:rgba(15,34,80,0.4);padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">Reputation Tiers</span>
       </div>
-      <h2 style="text-align:center;font-size:clamp(28px,4vw,48px);font-weight:900;color:white;margin:0 0 56px;letter-spacing:-0.02em;">Every score tells a story</h2>
+      <h2 style="text-align:center;font-size:clamp(28px,4vw,48px);font-weight:900;color:white;margin:0 0 20px;letter-spacing:-0.02em;">Every score tells a story</h2>
+      <p style="text-align:center;font-size:14px;font-weight:500;color:#93c5fd;border:1px solid rgba(37,99,235,0.25);background:rgba(15,34,80,0.4);border-radius:12px;padding:12px 24px;max-width:640px;margin:0 auto 48px;">Every consumer gets an instant Green, Yellow, or Red signal — so you know in one glance whether to take the job.</p>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
         <div class="glass" style="border-radius:16px;padding:24px;border-color:rgba(205,127,50,0.2)!important;transition:transform .2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
           <div style="width:40px;height:40px;border-radius:10px;background:rgba(205,127,50,0.2);color:#cd7f32;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:12px;">B</div>
@@ -198,34 +200,6 @@ tailwind.config = {
       <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">📈</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Build Your Score</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Every good interaction adds to your reputation score. Prove you're a great client across all providers.</p></div>
       <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">🏅</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Earn Rewards</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Reach Gold and Platinum tiers to unlock exclusive discounts, priority booking, and partner perks.</p></div>
       <div class="glass card" style="padding:28px;"><div style="font-size:32px;margin-bottom:16px;">🔒</div><h3 style="font-size:17px;font-weight:700;color:white;margin:0 0 8px;">Own Your Profile</h3><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Claim your profile, dispute inaccurate reviews, and control your reputation narrative.</p></div>
-    </div>
-  </div>
-
-  <!-- About Us -->
-  <div style="border-top:1px solid rgba(37,99,235,0.12);background:rgba(4,13,33,0.7);padding:80px 0;">
-    <div style="max-width:780px;margin:0 auto;padding:0 24px;">
-      <div style="text-align:center;margin-bottom:40px;">
-        <span style="border-radius:99px;border:1px solid rgba(37,99,235,0.3);background:rgba(15,34,80,0.4);padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;display:inline-block;margin-bottom:20px;">About Us</span>
-        <h2 style="font-size:clamp(28px,4vw,48px);font-weight:900;color:white;letter-spacing:-0.02em;margin:0;">Repflip started because of a<br><span style="background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 50%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">horrible customer.</span></h2>
-      </div>
-      <div class="glass" style="border-radius:24px;padding:48px;">
-        <div style="font-size:clamp(15px,1.8vw,17px);color:#94a3b8;line-height:1.9;display:flex;flex-direction:column;gap:20px;">
-          <p style="margin:0;">Carter Baker has run a service business in the Treasure Valley for years. Like every contractor, he's had his share of difficult jobs. But one customer stands out. Terrible communication. Constant scope creep. Threats of legal action, multiple times. Work that was never good enough no matter how many times it was redone. Hours of time, energy, and money poured into a relationship that should never have started.</p>
-          <p style="margin:0;">The frustrating part wasn't the customer. It was that there was no way to know.</p>
-          <p style="margin:0;">No system existed to warn Carter before he took the job. No way to tell the next plumber, electrician, or landscaper who called that customer what they were walking into. The business absorbed all the risk. The customer faced none of the consequences.</p>
-          <p style="margin:0;color:#e2e8f0;font-weight:600;">Carter built Repflip to change that.</p>
-          <p style="margin:0;">The idea is simple: businesses rate customers the same way customers rate businesses. Consumers build a reputation score that follows them across every service provider they work with. Good behavior gets rewarded — with points, prizes, and priority access to the best businesses in town. And businesses finally get what they've always deserved — a clear signal before they commit.</p>
-          <p style="margin:0;">We're starting in the Treasure Valley because this is home. The hundreds of founding businesses who are helping build this with us aren't customers, they're co-founders of a movement. Every review they submit makes the platform more valuable for every business that comes after them.</p>
-          <p style="margin:0;color:#e2e8f0;font-weight:600;">This isn't just a software company. It's the beginning of a trust layer for the entire service economy.</p>
-          <div style="border-top:1px solid rgba(37,99,235,0.15);padding-top:24px;margin-top:4px;display:flex;align-items:center;gap:16px;">
-            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(37,99,235,0.3),rgba(6,182,212,0.2));border:1px solid rgba(37,99,235,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#60a5fa;flex-shrink:0;">C</div>
-            <div>
-              <p style="margin:0;font-size:15px;font-weight:700;color:white;">Carter Baker</p>
-              <p style="margin:0;font-size:13px;color:#475569;">Founder, Repflip</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -401,6 +375,40 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════ ABOUT PAGE ═══════════════════════════════════════ -->
+<div id="page-about" class="page">
+  <div style="max-width:780px;margin:0 auto;padding:96px 24px 80px;">
+    <div style="margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+      <div style="height:3px;width:24px;border-radius:99px;background:#2563eb;"></div>
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">Our Story</span>
+    </div>
+    <h1 style="font-size:clamp(36px,5vw,60px);font-weight:900;line-height:1.08;letter-spacing:-0.03em;color:white;margin:0 0 56px;">
+      Repflip started because of a <span style="background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 50%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">horrible customer.</span>
+    </h1>
+    <div class="glass" style="border-radius:24px;padding:48px 52px;">
+      <div style="font-size:clamp(15px,1.8vw,17px);color:#94a3b8;line-height:1.9;display:flex;flex-direction:column;gap:22px;">
+        <p style="margin:0;">Carter Baker has run a service business in the Treasure Valley for years. Like every contractor, he's had his share of difficult jobs. But one customer stands out. Terrible communication. Constant scope creep. Multiple threats of legal action. Work that was never good enough no matter how many times it was redone. Hours of time, energy, and money poured into a relationship that should never have started.</p>
+        <p style="margin:0;">The frustrating part wasn't the customer. It was that there was no way to know.</p>
+        <p style="margin:0;">No system existed to warn Carter before he took the job. No way to tell the next plumber, electrician, or landscaper who called that customer what they were walking into. The business absorbed all the risk. The customer faced none of the consequences.</p>
+        <p style="margin:0;font-size:18px;font-weight:600;color:#e2e8f0;">Carter built Repflip to change that.</p>
+        <p style="margin:0;">The idea is simple: businesses rate customers the same way customers rate businesses. Consumers build a reputation score that follows them across every service provider they work with. Good behavior gets rewarded with points, prizes, and priority access to the best businesses in town. And businesses finally get what they've always deserved — a clear signal before they commit.</p>
+        <p style="margin:0;">We're starting in the Treasure Valley because this is home. The hundreds of participating businesses who are helping us aren't customers, they're co-founders of a movement. Every review they submit makes the platform more valuable for every business that comes after them.</p>
+        <p style="margin:0;font-size:18px;font-weight:600;color:#e2e8f0;">This isn't just a software company. It's the beginning of a trust layer for the entire service economy.</p>
+        <div style="border-top:1px solid rgba(37,99,235,0.18);padding-top:28px;margin-top:6px;">
+          <p style="margin:0 0 20px;font-style:italic;color:#475569;">— Carter Baker, Founder</p>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(37,99,235,0.3),rgba(6,182,212,0.2));border:1px solid rgba(37,99,235,0.35);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#60a5fa;flex-shrink:0;">C</div>
+            <div>
+              <p style="margin:0;font-size:15px;font-weight:700;color:#60a5fa;">Carter Baker</p>
+              <p style="margin:0;font-size:13px;color:#475569;">Founder &amp; CEO, Repflip</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─────────────────── DATA ───────────────────
 const CONSUMERS = [
@@ -481,15 +489,43 @@ function tagChip(tag) {
   return `<span style="border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;${neg?'background:rgba(127,29,29,0.3);color:#f87171;border:1px solid rgba(248,113,113,0.2);':'background:rgba(6,78,59,0.3);color:#34d399;border:1px solid rgba(52,211,153,0.2);'}">${neg?'✕':'✓'} ${tag}</span>`;
 }
 
-function scoreRingSVG(score, color, size=128) {
-  const r = size*0.44;
-  const circ = 2*Math.PI*r;
-  const prog = (score/100)*circ;
-  const cx = size/2, cy = size/2;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(37,99,235,0.08)" stroke-width="${size*0.07}"/>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${size*0.07}" stroke-linecap="round" stroke-dasharray="${prog} ${circ}" style="filter:drop-shadow(0 0 6px ${color}80);"/>
-  </svg>`;
+function getSignal(score, hasReviews) {
+  if (!hasReviews) return 'grey';
+  if (score >= 85) return 'green';
+  if (score >= 65) return 'yellow';
+  return 'red';
+}
+
+const SIGNAL_CFG = {
+  green:  { on:'#22c55e', glow:'rgba(34,197,94,0.5)',   dim:'rgba(34,197,94,0.07)',   headline:'Green Light — Trusted Customer.',       subline:'Take the job.',             cls:'color:#22c55e' },
+  yellow: { on:'#f59e0b', glow:'rgba(245,158,11,0.5)',  dim:'rgba(245,158,11,0.07)',  headline:'Yellow Light — Proceed with Caution.',  subline:'Review the details.',       cls:'color:#f59e0b' },
+  red:    { on:'#ef4444', glow:'rgba(239,68,68,0.5)',   dim:'rgba(239,68,68,0.07)',   headline:'Red Light — High Risk.',                subline:'Charge more or decline.',   cls:'color:#ef4444' },
+  grey:   { on:'#94a3b8', glow:'rgba(148,163,184,0.3)', dim:'rgba(148,163,184,0.06)', headline:'No Reviews Yet',                        subline:'You would be their first.', cls:'color:#94a3b8' },
+};
+
+function trafficLightHTML(score, hasReviews) {
+  const sig = getSignal(score, hasReviews);
+  const cfg = SIGNAL_CFG[sig];
+  const BULBS = [
+    { id:'red',    on:'#ef4444', glow:'rgba(239,68,68,0.5)',   dim:'rgba(239,68,68,0.07)'   },
+    { id:'yellow', on:'#f59e0b', glow:'rgba(245,158,11,0.5)',  dim:'rgba(245,158,11,0.07)'  },
+    { id:'green',  on:'#22c55e', glow:'rgba(34,197,94,0.5)',   dim:'rgba(34,197,94,0.07)'   },
+  ];
+  const bulbsHTML = BULBS.map(b => {
+    const active = sig === b.id;
+    return `<div style="width:40px;height:40px;border-radius:50%;background:${active?b.on:b.dim};box-shadow:${active?`0 0 18px ${b.glow},0 0 36px ${b.glow}`:'none'};transition:all .3s;"></div>`;
+  }).join('');
+  return `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;border-radius:16px;background:#020810;border:1px solid rgba(37,99,235,0.25);padding:18px 22px;">
+        ${bulbsHTML}
+      </div>
+      <div style="text-align:center;max-width:180px;">
+        <p style="margin:0;font-size:13px;font-weight:700;line-height:1.4;${cfg.cls};">${cfg.headline}</p>
+        <p style="margin:4px 0 0;font-size:11px;color:#64748b;">${cfg.subline}</p>
+        ${hasReviews ? `<p style="margin:8px 0 0;font-size:11px;color:#475569;">Score: <span style="color:#94a3b8;font-weight:600;">${score} / 100</span></p>` : ''}
+      </div>
+    </div>`;
 }
 
 function renderDashboard(filter='') {
@@ -527,13 +563,7 @@ function renderDashboard(filter='') {
         </div>
       </div>
       <div style="display:flex;gap:24px;padding:24px;flex-wrap:wrap;align-items:center;">
-        <div class="score-ring" style="border-radius:50%;position:relative;flex-shrink:0;">
-          ${scoreRingSVG(c.score, cfg.ringColor)}
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-            <span style="font-size:36px;font-weight:900;color:white;line-height:1;">${c.score}</span>
-            <span style="font-size:10px;color:#475569;">/ 100</span>
-          </div>
-        </div>
+        ${trafficLightHTML(c.score, c.reviews.length > 0)}
         <div style="flex:1;min-width:220px;">
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
             <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${c.reviews.length}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Reviews</div></div>

@@ -40,12 +40,6 @@ const FEATURES_CONSUMER = [
   },
 ];
 
-const STATS = [
-  { value: "75+", label: "Founding Businesses" },
-  { value: "Treasure Valley", label: "Idaho" },
-  { value: "Free", label: "Year One" },
-  { value: "Zero", label: "Equity" },
-];
 
 const TIERS = [
   { name: "Bronze", range: "60–74", color: "#cd7f32", description: "Room to grow" },
@@ -162,20 +156,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="border-y border-blue-950/60 bg-[#040d21]/80">
-        <div className="mx-auto max-w-6xl px-6 py-12">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {STATS.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="mb-1 text-3xl font-black text-white md:text-4xl">{stat.value}</div>
-                <div className="text-sm text-slate-500">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* For Businesses */}
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-6">
@@ -218,9 +198,12 @@ export default function LandingPage() {
           <h2 className="mb-4 text-center text-3xl font-black text-white md:text-5xl">
             Every score tells a story
           </h2>
-          <p className="mx-auto mb-14 max-w-xl text-center text-slate-400">
+          <p className="mx-auto mb-6 max-w-xl text-center text-slate-400">
             Repflip&apos;s four-tier system gives businesses an instant read on any consumer — and gives
             consumers a goal worth working toward.
+          </p>
+          <p className="mx-auto mb-12 max-w-2xl text-center text-sm font-medium text-blue-300/80 border border-blue-800/30 bg-blue-950/30 rounded-xl px-6 py-3">
+            Every consumer gets an instant Green, Yellow, or Red signal — so you know in one glance whether to take the job.
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {TIERS.map((tier) => (
@@ -329,71 +312,6 @@ export default function LandingPage() {
               <p className="mt-4 text-xs text-slate-600">
                 No spam. No credit card. Cancel anytime.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Us */}
-      <section className="border-t border-blue-950/40 bg-[#040d21]/70 py-24">
-        <div className="mx-auto max-w-3xl px-6">
-          <div className="mb-12 text-center">
-            <span className="mb-5 inline-block rounded-full border border-blue-800/40 bg-blue-950/30 px-3 py-1 text-xs font-bold uppercase tracking-widest text-blue-400">
-              About Us
-            </span>
-            <h2 className="text-4xl font-black leading-tight tracking-tight text-white md:text-5xl">
-              Repflip started because of a{" "}
-              <span className="gradient-text">horrible customer.</span>
-            </h2>
-          </div>
-
-          <div className="glass-card rounded-2xl p-8 md:p-12">
-            <div className="flex flex-col gap-5 text-base leading-relaxed text-slate-400 md:text-lg">
-              <p>
-                Carter Baker has run a service business in the Treasure Valley for years. Like every
-                contractor, he&apos;s had his share of difficult jobs. But one customer stands out.
-                Terrible communication. Constant scope creep. Multiple threats of legal action. Work
-                that was never good enough no matter how many times it was redone. Hours of time,
-                energy, and money poured into a relationship that should never have started.
-              </p>
-              <p>
-                The frustrating part wasn&apos;t the customer. It was that there was no way to know.
-              </p>
-              <p>
-                No system existed to warn Carter before he took the job. No way to tell the next
-                plumber, electrician, or landscaper who called that customer what they were walking
-                into. The business absorbed all the risk. The customer faced none of the consequences.
-              </p>
-              <p className="font-semibold text-white">
-                Carter built Repflip to change that.
-              </p>
-              <p>
-                The idea is simple: businesses rate customers the same way customers rate businesses.
-                Consumers build a reputation score that follows them across every service provider
-                they work with. Good behavior gets rewarded with points, prizes, and priority access
-                to the best businesses in town. And businesses finally get what they&apos;ve always
-                deserved — a clear signal before they commit.
-              </p>
-              <p>
-                We&apos;re starting in the Treasure Valley because this is home. The hundreds of
-                participating businesses who are helping us aren&apos;t customers, they&apos;re
-                co-founders of a movement. Every review they submit makes the platform more valuable
-                for every business that comes after them.
-              </p>
-              <p className="font-semibold text-white">
-                This isn&apos;t just a software company. It&apos;s the beginning of a trust layer
-                for the entire service economy.
-              </p>
-
-              <div className="mt-2 flex items-center gap-4 border-t border-blue-900/40 pt-6">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/20 border border-blue-700/30 text-lg font-black text-blue-400">
-                  C
-                </div>
-                <div>
-                  <p className="font-bold text-white">Carter Baker</p>
-                  <p className="text-sm text-slate-500">Founder, Repflip</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

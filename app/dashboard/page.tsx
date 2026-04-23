@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { CONSUMERS, TIER_CONFIG, type Consumer } from "@/lib/data";
+// TIER_CONFIG used for header glow and tier badge styling
 
 function StarRow({ rating }: { rating: number }) {
   return (
@@ -17,30 +18,57 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-function ScoreRing({ score, tier }: { score: number; tier: Consumer["tier"] }) {
-  const cfg = TIER_CONFIG[tier];
-  const circumference = 2 * Math.PI * 42;
-  const progress = (score / 100) * circumference;
+type Signal = "green" | "yellow" | "red" | "grey";
+
+const LIGHTS = [
+  { id: "red" as Signal,    on: "#ef4444", glow: "rgba(239,68,68,0.5)",    dim: "rgba(239,68,68,0.07)"    },
+  { id: "yellow" as Signal, on: "#f59e0b", glow: "rgba(245,158,11,0.5)",   dim: "rgba(245,158,11,0.07)"   },
+  { id: "green" as Signal,  on: "#22c55e", glow: "rgba(34,197,94,0.5)",    dim: "rgba(34,197,94,0.07)"    },
+];
+
+const SIGNAL_TEXT: Record<Signal, { headline: string; subline: string; cls: string }> = {
+  green:  { headline: "Green Light — Trusted Customer.",        subline: "Take the job.",               cls: "text-emerald-400" },
+  yellow: { headline: "Yellow Light — Proceed with Caution.",   subline: "Review the details.",         cls: "text-yellow-400"  },
+  red:    { headline: "Red Light — High Risk.",                  subline: "Charge more or decline.",     cls: "text-red-400"     },
+  grey:   { headline: "No Reviews Yet",                          subline: "You would be their first.",   cls: "text-slate-400"   },
+};
+
+function getSignal(score: number, hasReviews: boolean): Signal {
+  if (!hasReviews) return "grey";
+  if (score >= 85) return "green";
+  if (score >= 65) return "yellow";
+  return "red";
+}
+
+function TrafficLight({ score, hasReviews }: { score: number; hasReviews: boolean }) {
+  const signal = getSignal(score, hasReviews);
+  const { headline, subline, cls } = SIGNAL_TEXT[signal];
 
   return (
-    <div className="relative flex h-32 w-32 items-center justify-center">
-      <svg className="absolute h-32 w-32 -rotate-90" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(37,99,235,0.1)" strokeWidth="8" />
-        <circle
-          cx="50"
-          cy="50"
-          r="42"
-          fill="none"
-          stroke={cfg.color}
-          strokeWidth="8"
-          strokeLinecap="round"
-          strokeDasharray={`${progress} ${circumference}`}
-          style={{ filter: `drop-shadow(0 0 6px ${cfg.color}60)` }}
-        />
-      </svg>
-      <div className="text-center">
-        <div className="text-4xl font-black text-white">{score}</div>
-        <div className="text-xs text-slate-500">/ 100</div>
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-[#020810] border border-blue-900/40 px-6 py-5 shadow-inner">
+        {LIGHTS.map(({ id, on, glow, dim }) => {
+          const active = signal === id;
+          return (
+            <div
+              key={id}
+              className="h-10 w-10 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: active ? on : dim,
+                boxShadow: active ? `0 0 18px ${glow}, 0 0 36px ${glow}` : "none",
+              }}
+            />
+          );
+        })}
+      </div>
+      <div className="text-center max-w-[180px]">
+        <p className={`text-sm font-bold leading-snug ${cls}`}>{headline}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{subline}</p>
+        {hasReviews && (
+          <p className="mt-2 text-xs text-slate-600">
+            Score: <span className="font-semibold text-slate-400">{score} / 100</span>
+          </p>
+        )}
       </div>
     </div>
   );
@@ -48,6 +76,7 @@ function ScoreRing({ score, tier }: { score: number; tier: Consumer["tier"] }) {
 
 function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubmitReview: () => void }) {
   const cfg = TIER_CONFIG[consumer.tier];
+  const hasReviews = consumer.reviews.length > 0;
   const positiveTags = consumer.reviews
     .flatMap((r) => r.tags)
     .filter((t) => !["No-show", "Disputed payment", "Aggressive", "Scope creep"].includes(t));
@@ -75,7 +104,7 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-sm text-slate-400">{consumer.phone}</span>
                 <span className="text-slate-700">·</span>
-                <span className="text-sm text-slate-500">Since {consumer.memberSince}</span>
+                <span className="text-sm text-slate-400">{consumer.email}</span>
               </div>
             </div>
           </div>
@@ -87,10 +116,10 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
         </div>
       </div>
 
-      {/* Score + Stats */}
+      {/* Traffic Light + Stats */}
       <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center">
-        <div className="flex justify-center score-ring rounded-full">
-          <ScoreRing score={consumer.score} tier={consumer.tier} />
+        <div className="flex justify-center">
+          <TrafficLight score={consumer.score} hasReviews={hasReviews} />
         </div>
 
         <div className="flex flex-1 flex-col gap-4">
