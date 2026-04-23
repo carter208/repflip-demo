@@ -44,26 +44,31 @@ function TrafficLight({ score, hasReviews }: { score: number; hasReviews: boolea
   const signal = getSignal(score, hasReviews);
   const { headline, subline, cls } = SIGNAL_TEXT[signal];
 
+  const dotColor: Record<Signal, string> = {
+    green:  "#22c55e",
+    yellow: "#f59e0b",
+    red:    "#ef4444",
+    grey:   "#64748b",
+  };
+  const dotGlow: Record<Signal, string> = {
+    green:  "rgba(34,197,94,0.55)",
+    yellow: "rgba(245,158,11,0.55)",
+    red:    "rgba(239,68,68,0.55)",
+    grey:   "rgba(100,116,139,0.3)",
+  };
+
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex flex-col items-center gap-3 rounded-2xl bg-[#020810] border border-blue-900/40 px-6 py-5 shadow-inner">
-        {LIGHTS.map(({ id, on, glow, dim }) => {
-          const active = signal === id;
-          return (
-            <div
-              key={id}
-              className="h-10 w-10 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: active ? on : dim,
-                boxShadow: active ? `0 0 18px ${glow}, 0 0 36px ${glow}` : "none",
-              }}
-            />
-          );
-        })}
-      </div>
-      <div className="text-center max-w-[180px]">
-        <p className={`text-sm font-bold leading-snug ${cls}`}>{headline}</p>
-        <p className="text-xs text-slate-500 mt-0.5">{subline}</p>
+    <div className="flex flex-col items-center gap-4 py-2">
+      <div
+        className="h-24 w-24 rounded-full flex-shrink-0"
+        style={{
+          backgroundColor: dotColor[signal],
+          boxShadow: `0 0 32px ${dotGlow[signal]}, 0 0 64px ${dotGlow[signal]}`,
+        }}
+      />
+      <div className="text-center max-w-[200px]">
+        <p className={`text-base font-black leading-snug ${cls}`}>{headline}</p>
+        <p className="text-sm text-slate-400 mt-1">{subline}</p>
         {hasReviews && (
           <p className="mt-2 text-xs text-slate-600">
             Score: <span className="font-semibold text-slate-400">{score} / 100</span>
@@ -88,9 +93,23 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
 
   return (
     <div className="glass-card overflow-hidden rounded-2xl shadow-card-glow">
-      {/* Header */}
+      {/* Traffic Light Hero */}
+      <div className="relative overflow-hidden border-b border-blue-900/30 px-6 py-8 text-center">
+        <div
+          className="absolute inset-0 opacity-10 blur-3xl"
+          style={{
+            background: `radial-gradient(circle at 50% 60%, ${
+              !hasReviews ? "#64748b" : consumer.score >= 85 ? "#22c55e" : consumer.score >= 65 ? "#f59e0b" : "#ef4444"
+            }, transparent 70%)`,
+          }}
+        />
+        <div className="relative">
+          <TrafficLight score={consumer.score} hasReviews={hasReviews} />
+        </div>
+      </div>
+
+      {/* Consumer Info */}
       <div className="relative overflow-hidden p-6 pb-0">
-        <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full opacity-10 blur-2xl" style={{ backgroundColor: cfg.color }} />
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div
@@ -116,12 +135,8 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
         </div>
       </div>
 
-      {/* Traffic Light + Stats */}
-      <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center">
-        <div className="flex justify-center">
-          <TrafficLight score={consumer.score} hasReviews={hasReviews} />
-        </div>
-
+      {/* Stats */}
+      <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-1 flex-col gap-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">

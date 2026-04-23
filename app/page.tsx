@@ -41,12 +41,6 @@ const FEATURES_CONSUMER = [
 ];
 
 
-const TIERS = [
-  { name: "Bronze", range: "60–74", color: "#cd7f32", description: "Room to grow" },
-  { name: "Silver", range: "75–84", color: "#9ca3af", description: "Trusted client" },
-  { name: "Gold", range: "85–94", color: "#f59e0b", description: "Preferred customer" },
-  { name: "Platinum", range: "95–100", color: "#e2e8f0", description: "Businesses compete for you" },
-];
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
@@ -185,50 +179,75 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Tier System */}
+      {/* How It Works — Traffic Light */}
       <section className="py-24 bg-[#040d21]/60">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-blue-800/40" />
             <span className="rounded-full border border-blue-800/40 bg-blue-950/30 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
-              Reputation Tiers
+              How It Works
             </span>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-blue-800/40" />
           </div>
           <h2 className="mb-4 text-center text-3xl font-black text-white md:text-5xl">
-            Every score tells a story
+            One glance. Instant decision.
           </h2>
-          <p className="mx-auto mb-6 max-w-xl text-center text-slate-400">
-            Repflip&apos;s four-tier system gives businesses an instant read on any consumer — and gives
-            consumers a goal worth working toward.
+          <p className="mx-auto mb-16 max-w-xl text-center text-slate-400">
+            Every consumer lookup returns a single signal. No guessing, no reading between the lines.
+            You know in seconds whether to take the job.
           </p>
-          <p className="mx-auto mb-12 max-w-2xl text-center text-sm font-medium text-blue-300/80 border border-blue-800/30 bg-blue-950/30 rounded-xl px-6 py-3">
-            Every consumer gets an instant Green, Yellow, or Red signal — so you know in one glance whether to take the job.
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {TIERS.map((tier) => (
-              <div
-                key={tier.name}
-                className="glass-card relative overflow-hidden rounded-2xl p-6 transition-all hover:scale-[1.02]"
-                style={{ borderColor: `${tier.color}30` }}
-              >
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Green */}
+            <div className="glass-card relative overflow-hidden rounded-2xl p-8 text-center transition-all hover:scale-[1.02]">
+              <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/20 to-transparent" />
+              <div className="relative">
                 <div
-                  className="absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-10 blur-xl"
-                  style={{ backgroundColor: tier.color }}
+                  className="mx-auto mb-6 h-24 w-24 rounded-full"
+                  style={{
+                    backgroundColor: "#22c55e",
+                    boxShadow: "0 0 40px rgba(34,197,94,0.5), 0 0 80px rgba(34,197,94,0.25)",
+                  }}
                 />
-                <div
-                  className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg font-black"
-                  style={{ backgroundColor: `${tier.color}20`, color: tier.color }}
-                >
-                  {tier.name[0]}
-                </div>
-                <h3 className="mb-1 text-xl font-black text-white">{tier.name}</h3>
-                <p className="mb-2 text-sm font-semibold" style={{ color: tier.color }}>
-                  Score {tier.range}
-                </p>
-                <p className="text-xs text-slate-500">{tier.description}</p>
+                <h3 className="mb-1 text-2xl font-black text-emerald-400">Green Light</h3>
+                <p className="mb-3 text-sm font-semibold text-emerald-600">Score 85+</p>
+                <p className="text-slate-400">Trusted customer. Take the job.</p>
               </div>
-            ))}
+            </div>
+
+            {/* Yellow */}
+            <div className="glass-card relative overflow-hidden rounded-2xl p-8 text-center transition-all hover:scale-[1.02]">
+              <div className="absolute inset-0 bg-gradient-to-b from-yellow-950/20 to-transparent" />
+              <div className="relative">
+                <div
+                  className="mx-auto mb-6 h-24 w-24 rounded-full"
+                  style={{
+                    backgroundColor: "#f59e0b",
+                    boxShadow: "0 0 40px rgba(245,158,11,0.5), 0 0 80px rgba(245,158,11,0.25)",
+                  }}
+                />
+                <h3 className="mb-1 text-2xl font-black text-yellow-400">Yellow Light</h3>
+                <p className="mb-3 text-sm font-semibold text-yellow-600">Score 65–84</p>
+                <p className="text-slate-400">Proceed with caution. Review their history.</p>
+              </div>
+            </div>
+
+            {/* Red */}
+            <div className="glass-card relative overflow-hidden rounded-2xl p-8 text-center transition-all hover:scale-[1.02]">
+              <div className="absolute inset-0 bg-gradient-to-b from-red-950/20 to-transparent" />
+              <div className="relative">
+                <div
+                  className="mx-auto mb-6 h-24 w-24 rounded-full"
+                  style={{
+                    backgroundColor: "#ef4444",
+                    boxShadow: "0 0 40px rgba(239,68,68,0.5), 0 0 80px rgba(239,68,68,0.25)",
+                  }}
+                />
+                <h3 className="mb-1 text-2xl font-black text-red-400">Red Light</h3>
+                <p className="mb-3 text-sm font-semibold text-red-700">Score below 65</p>
+                <p className="text-slate-400">High risk. Charge more or pass.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
