@@ -63,8 +63,19 @@ tailwind.config = {
     </div>
     <div style="display:flex;align-items:center;gap:4px;" id="nav-links">
       <span class="nav-link" id="nav-dashboard" onclick="showPage('dashboard')">Business Dashboard</span>
-      <span class="nav-link" id="nav-profile" onclick="showPage('profile')">Consumer Profile</span>
       <span class="nav-link" id="nav-submit" onclick="showPage('submit')">Submit Review</span>
+      <!-- For Consumers dropdown -->
+      <div style="position:relative;" id="consumer-dropdown-wrap">
+        <button id="consumer-dropdown-btn" onclick="toggleConsumerDropdown()" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;font-weight:500;padding:8px 16px;border-radius:8px;transition:all .15s;font-family:inherit;" onmouseover="this.style.background='rgba(37,99,235,0.15)';this.style.color='#93c5fd'" onmouseout="if(!consumerDropOpen)this.style.background='';if(!consumerDropOpen)this.style.color='#94a3b8'">
+          For Consumers
+          <svg id="consumer-caret" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="consumer-dropdown-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:210px;background:rgba(4,13,33,0.97);border:1px solid rgba(37,99,235,0.2);border-radius:12px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.6);backdrop-filter:blur(16px);z-index:100;">
+          <div onclick="showPage('profile');closeConsumerDropdown()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:14px;font-weight:500;color:#cbd5e1;transition:all .15s;" onmouseover="this.style.background='rgba(37,99,235,0.15)';this.style.color='white'" onmouseout="this.style.background='';this.style.color='#cbd5e1'"><span>👤</span> Consumer Profile</div>
+          <div onclick="showPage('rewards');closeConsumerDropdown()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:14px;font-weight:500;color:#cbd5e1;transition:all .15s;" onmouseover="this.style.background='rgba(37,99,235,0.15)';this.style.color='white'" onmouseout="this.style.background='';this.style.color='#cbd5e1'"><span>🏆</span> Rewards</div>
+          <div onclick="showPage('how-it-works');closeConsumerDropdown()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:14px;font-weight:500;color:#cbd5e1;transition:all .15s;" onmouseover="this.style.background='rgba(37,99,235,0.15)';this.style.color='white'" onmouseout="this.style.background='';this.style.color='#cbd5e1'"><span>💡</span> How It Works</div>
+        </div>
+      </div>
       <span class="nav-link" id="nav-about" onclick="showPage('about')">About</span>
     </div>
     <button class="btn-primary" style="padding:8px 18px;font-size:14px;" onclick="showPage('dashboard')">For Businesses</button>
@@ -367,6 +378,7 @@ tailwind.config = {
           <div id="profile-reviews"></div>
         </div>
         <div class="glass" id="rewards-card" style="border-radius:16px;padding:20px;position:relative;overflow:hidden;"></div>
+        <div class="glass" id="profile-tips-card" style="border-radius:16px;padding:20px;margin-top:16px;"></div>
       </div>
     </div>
   </div>
@@ -400,6 +412,154 @@ tailwind.config = {
               <p style="margin:0;font-size:13px;color:#475569;">Founder &amp; CEO, Repflip</p>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ REWARDS PAGE ═══════════════════════════════════════ -->
+<div id="page-rewards" class="page">
+  <div style="max-width:900px;margin:0 auto;padding:96px 24px 60px;">
+    <!-- Header -->
+    <div style="margin-bottom:40px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="height:3px;width:24px;border-radius:99px;background:#2563eb;"></div>
+        <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">Your Rewards</span>
+      </div>
+      <h1 style="font-size:clamp(32px,4vw,48px);font-weight:900;color:white;margin:0 0 8px;">🏆 Earn. Spend. Win.</h1>
+      <p id="rewards-balance-line" style="color:#94a3b8;font-size:15px;margin:0;"></p>
+    </div>
+
+    <!-- Prize Draw -->
+    <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fbbf24;margin:0 0 12px;">🎰 Monthly Prize Draw</p>
+    <div class="glass" style="border-radius:20px;overflow:hidden;margin-bottom:32px;">
+      <!-- Hero -->
+      <div style="background:linear-gradient(135deg,rgba(120,53,15,0.3),rgba(92,38,10,0.2));border-bottom:1px solid rgba(245,158,11,0.2);padding:36px 24px;text-align:center;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 120% at 50% 0%,rgba(245,158,11,0.12),transparent);pointer-events:none;"></div>
+        <div style="position:relative;">
+          <div style="font-size:64px;margin-bottom:8px;">💰</div>
+          <div style="font-size:52px;font-weight:900;color:white;line-height:1;margin-bottom:4px;">$500</div>
+          <div style="font-size:15px;font-weight:600;color:#fbbf24;margin-bottom:24px;">Cash Prize — April 2026 Draw</div>
+          <!-- Countdown -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:280px;margin:0 auto 24px;">
+            <div style="border-radius:10px;border:1px solid rgba(245,158,11,0.3);background:rgba(120,53,15,0.4);padding:10px 6px;text-align:center;"><div id="cd-days" style="font-size:26px;font-weight:900;color:white;">00</div><div style="font-size:10px;color:#92400e;margin-top:2px;">Days</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(245,158,11,0.3);background:rgba(120,53,15,0.4);padding:10px 6px;text-align:center;"><div id="cd-hrs" style="font-size:26px;font-weight:900;color:white;">00</div><div style="font-size:10px;color:#92400e;margin-top:2px;">Hrs</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(245,158,11,0.3);background:rgba(120,53,15,0.4);padding:10px 6px;text-align:center;"><div id="cd-min" style="font-size:26px;font-weight:900;color:white;">00</div><div style="font-size:10px;color:#92400e;margin-top:2px;">Min</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(245,158,11,0.3);background:rgba(120,53,15,0.4);padding:10px 6px;text-align:center;"><div id="cd-sec" style="font-size:26px;font-weight:900;color:white;">00</div><div style="font-size:10px;color:#92400e;margin-top:2px;">Sec</div></div>
+          </div>
+          <!-- Stats -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:24px;">
+            <div style="text-align:center;"><div id="draw-entries-display" style="font-size:24px;font-weight:900;color:white;">3</div><div style="font-size:11px;color:#64748b;margin-top:2px;">Your Entries</div></div>
+            <div style="width:1px;height:32px;background:rgba(245,158,11,0.2);"></div>
+            <div style="text-align:center;"><div style="font-size:24px;font-weight:900;color:white;">500</div><div style="font-size:11px;color:#64748b;margin-top:2px;">Pts / Entry</div></div>
+            <div style="width:1px;height:32px;background:rgba(245,158,11,0.2);"></div>
+            <div style="text-align:center;"><div id="draw-pts-display" style="font-size:24px;font-weight:900;color:#bae6fd;">4,820</div><div style="font-size:11px;color:#64748b;margin-top:2px;">Pts Balance</div></div>
+          </div>
+          <button id="enter-draw-btn" onclick="enterDraw()" style="border-radius:10px;background:#eab308;color:#422006;font-size:14px;font-weight:900;padding:12px 32px;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(234,179,8,0.35);transition:all .2s;" onmouseover="this.style.background='#facc15'" onmouseout="this.style.background='#eab308'">Enter Draw — 500 pts</button>
+          <p id="draw-low-pts" style="display:none;font-size:12px;color:#f87171;margin-top:8px;">Not enough points. Keep earning!</p>
+        </div>
+      </div>
+      <!-- Past Winners -->
+      <div style="padding:24px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#475569;margin:0 0 16px;">🏅 Past Winners</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px 16px;"><div><span style="font-size:13px;font-weight:600;color:white;">Jennifer K.</span><span style="font-size:12px;color:#475569;margin-left:8px;">Boise, ID</span></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:#34d399;">$500 Cash</div><div style="font-size:11px;color:#334155;">March 2026</div></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px 16px;"><div><span style="font-size:13px;font-weight:600;color:white;">David R.</span><span style="font-size:12px;color:#475569;margin-left:8px;">Nampa, ID</span></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:#34d399;">$500 Cash</div><div style="font-size:11px;color:#334155;">February 2026</div></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px 16px;"><div><span style="font-size:13px;font-weight:600;color:white;">Amy T.</span><span style="font-size:12px;color:#475569;margin-left:8px;">Meridian, ID</span></div><div style="text-align:right;"><div style="font-size:13px;font-weight:700;color:#34d399;">$500 Cash</div><div style="font-size:11px;color:#334155;">January 2026</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rewards Marketplace -->
+    <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;margin:0 0 12px;">🛍️ Rewards Marketplace</p>
+    <div id="marketplace-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;"></div>
+
+    <!-- Gift Cards -->
+    <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#34d399;margin:0 0 12px;">💳 Gift Cards</p>
+    <div id="giftcards-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"></div>
+    <p style="text-align:center;font-size:12px;color:#334155;margin-top:16px;">100 points = $1.00 value · Gift cards processed within 3 business days</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ HOW IT WORKS PAGE ═══════════════════════════════════════ -->
+<div id="page-how-it-works" class="page">
+  <div style="max-width:900px;margin:0 auto;padding:96px 24px 60px;">
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+      <div style="height:3px;width:24px;border-radius:99px;background:#2563eb;"></div>
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;">For Consumers</span>
+    </div>
+    <h1 style="font-size:clamp(36px,5vw,60px);font-weight:900;line-height:1.1;letter-spacing:-0.03em;color:white;margin:0 0 16px;">Your reputation. <span style="background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 50%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Your rewards.</span></h1>
+    <p style="font-size:17px;color:#94a3b8;max-width:560px;line-height:1.7;margin:0 0 56px;">Repflip rewards the consumers who show up, pay on time, and treat service workers with respect. Here's how it works.</p>
+
+    <!-- Step 1 -->
+    <div class="glass" style="border-radius:20px;padding:36px;margin-bottom:8px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(37,99,235,0.06);filter:blur(40px);pointer-events:none;"></div>
+      <div style="display:flex;gap:20px;align-items:flex-start;position:relative;">
+        <div style="width:64px;height:64px;flex-shrink:0;border-radius:16px;background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;">⭐</div>
+        <div style="flex:1;">
+          <div style="margin-bottom:12px;"><span style="border-radius:99px;border:1px solid rgba(37,99,235,0.3);background:rgba(37,99,235,0.12);padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#60a5fa;">Step 1</span></div>
+          <h2 style="font-size:24px;font-weight:900;color:white;margin:0 0 10px;">Get reviewed</h2>
+          <p style="font-size:15px;color:#94a3b8;line-height:1.7;margin:0 0 16px;">After each service appointment, the business rates you. They leave behavioral tags — the same way you'd rate them on Yelp, but flipped. Your tags build your reputation across every provider you work with.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="border-radius:99px;background:rgba(6,78,59,0.3);color:#34d399;border:1px solid rgba(52,211,153,0.25);padding:4px 12px;font-size:12px;font-weight:600;">✓ Showed up on time</span>
+            <span style="border-radius:99px;background:rgba(6,78,59,0.3);color:#34d399;border:1px solid rgba(52,211,153,0.25);padding:4px 12px;font-size:12px;font-weight:600;">✓ Paid immediately</span>
+            <span style="border-radius:99px;background:rgba(6,78,59,0.3);color:#34d399;border:1px solid rgba(52,211,153,0.25);padding:4px 12px;font-size:12px;font-weight:600;">✓ Easy to communicate</span>
+            <span style="border-radius:99px;background:rgba(6,78,59,0.3);color:#34d399;border:1px solid rgba(52,211,153,0.25);padding:4px 12px;font-size:12px;font-weight:600;">✓ Respectful</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;padding:4px 0;"><div style="width:1px;height:32px;background:linear-gradient(to bottom,rgba(37,99,235,0.4),rgba(37,99,235,0.05));"></div></div>
+
+    <!-- Step 2 -->
+    <div class="glass" style="border-radius:20px;padding:36px;margin-bottom:8px;position:relative;overflow:hidden;">
+      <div style="position:absolute;bottom:-30px;left:-30px;width:160px;height:160px;border-radius:50%;background:rgba(16,185,129,0.05);filter:blur(40px);pointer-events:none;"></div>
+      <div style="display:flex;gap:20px;align-items:flex-start;position:relative;">
+        <div style="width:64px;height:64px;flex-shrink:0;border-radius:16px;background:rgba(16,185,129,0.15);border:1px solid rgba(52,211,153,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;">📈</div>
+        <div style="flex:1;">
+          <div style="margin-bottom:12px;"><span style="border-radius:99px;border:1px solid rgba(52,211,153,0.3);background:rgba(16,185,129,0.12);padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#34d399;">Step 2</span></div>
+          <h2 style="font-size:24px;font-weight:900;color:white;margin:0 0 10px;">Build your score</h2>
+          <p style="font-size:15px;color:#94a3b8;line-height:1.7;margin:0 0 16px;">Every positive review lifts your Repflip score — a number from 0 to 100 that reflects your reputation across every service provider you've worked with. Higher score means better tier, more perks, and priority access.</p>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.15);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:13px;font-weight:700;color:#e8a05a;margin-bottom:2px;">Bronze</div><div style="font-size:11px;color:#475569;">0–54</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.15);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:13px;font-weight:700;color:#d1d5db;margin-bottom:2px;">Silver</div><div style="font-size:11px;color:#475569;">55–74</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.15);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:2px;">Gold</div><div style="font-size:11px;color:#475569;">75–89</div></div>
+            <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.15);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:13px;font-weight:700;color:#bae6fd;margin-bottom:2px;">Platinum</div><div style="font-size:11px;color:#475569;">90–100</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;padding:4px 0;"><div style="width:1px;height:32px;background:linear-gradient(to bottom,rgba(37,99,235,0.4),rgba(37,99,235,0.05));"></div></div>
+
+    <!-- Step 3 -->
+    <div class="glass" style="border-radius:20px;padding:36px;margin-bottom:36px;position:relative;overflow:hidden;">
+      <div style="position:absolute;bottom:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(234,179,8,0.05);filter:blur(40px);pointer-events:none;"></div>
+      <div style="display:flex;gap:20px;align-items:flex-start;position:relative;">
+        <div style="width:64px;height:64px;flex-shrink:0;border-radius:16px;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;">🎁</div>
+        <div style="flex:1;">
+          <div style="margin-bottom:12px;"><span style="border-radius:99px;border:1px solid rgba(234,179,8,0.3);background:rgba(234,179,8,0.12);padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fbbf24;">Step 3</span></div>
+          <h2 style="font-size:24px;font-weight:900;color:white;margin:0 0 10px;">Earn rewards</h2>
+          <p style="font-size:15px;color:#94a3b8;line-height:1.7;margin:0 0 16px;">Good behavior earns you points — and points are real money. Every 100 points = $1. Spend them on gift cards, enter monthly cash prize draws, or redeem for discounts with local partner businesses.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);background:rgba(120,53,15,0.15);padding:10px 14px;"><span style="font-size:20px;">🎰</span><div><div style="font-size:13px;font-weight:600;color:white;">Monthly Cash Draw</div><div style="font-size:11px;color:#64748b;">500 pts / entry</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);background:rgba(120,53,15,0.15);padding:10px 14px;"><span style="font-size:20px;">🛍️</span><div><div style="font-size:13px;font-weight:600;color:white;">Partner Discounts</div><div style="font-size:11px;color:#64748b;">Local businesses</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);background:rgba(120,53,15,0.15);padding:10px 14px;"><span style="font-size:20px;">💳</span><div><div style="font-size:13px;font-weight:600;color:white;">Gift Cards</div><div style="font-size:11px;color:#64748b;">Amazon &amp; Visa</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="glass" style="border-radius:20px;padding:48px;text-align:center;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(37,99,235,0.06),rgba(6,182,212,0.04));pointer-events:none;"></div>
+      <div style="position:relative;">
+        <div style="font-size:52px;margin-bottom:16px;">🏆</div>
+        <h3 style="font-size:24px;font-weight:900;color:white;margin:0 0 8px;">Ready to build your reputation?</h3>
+        <p style="font-size:15px;color:#94a3b8;margin:0 0 24px;">Your Repflip profile is created automatically the first time any business reviews you.</p>
+        <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="showPage('profile')" style="padding:12px 28px;">View Your Profile →</button>
+          <button class="btn-secondary" onclick="showPage('rewards')" style="padding:12px 28px;">Browse Rewards</button>
         </div>
       </div>
     </div>
@@ -458,12 +618,41 @@ function showPage(page) {
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
   const navEl = document.getElementById('nav-' + page);
   if (navEl) navEl.classList.add('active');
+  // Highlight consumer dropdown button when on a consumer page
+  const consumerPages = ['profile','rewards','how-it-works'];
+  const btn = document.getElementById('consumer-dropdown-btn');
+  if (btn) {
+    if (consumerPages.includes(page)) { btn.style.background='rgba(37,99,235,0.15)'; btn.style.color='#93c5fd'; }
+    else { btn.style.background=''; btn.style.color='#94a3b8'; }
+  }
   currentPage = page;
   window.scrollTo(0, 0);
   if (page === 'dashboard') renderDashboard();
   if (page === 'submit') initSubmitForm();
   if (page === 'profile') { currentProfileId = '1'; renderProfile(); }
+  if (page === 'rewards') initRewards();
 }
+
+// ─────────────────── CONSUMER DROPDOWN ───────────────────
+let consumerDropOpen = false;
+function toggleConsumerDropdown() {
+  consumerDropOpen = !consumerDropOpen;
+  const menu = document.getElementById('consumer-dropdown-menu');
+  const caret = document.getElementById('consumer-caret');
+  menu.style.display = consumerDropOpen ? 'block' : 'none';
+  caret.style.transform = consumerDropOpen ? 'rotate(180deg)' : '';
+}
+function closeConsumerDropdown() {
+  consumerDropOpen = false;
+  const menu = document.getElementById('consumer-dropdown-menu');
+  const caret = document.getElementById('consumer-caret');
+  if (menu) menu.style.display = 'none';
+  if (caret) caret.style.transform = '';
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('consumer-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) closeConsumerDropdown();
+});
 
 // ─────────────────── LANDING ───────────────────
 function submitEmail() {
@@ -731,6 +920,19 @@ function renderProfile() {
   const topNeg = Object.entries(negCounts).sort((a,b)=>b[1]-a[1]).slice(0,2);
   const pointsPct = Math.min((c.points/5000)*100,100);
 
+  // Tier progress
+  const TIER_RANGES = { Platinum:{min:90,max:100,next:null}, Gold:{min:75,max:90,next:'Platinum'}, Silver:{min:55,max:75,next:'Gold'}, Bronze:{min:0,max:55,next:'Silver'} };
+  const tr = TIER_RANGES[c.tier];
+  const tierPct = tr.next ? Math.min(((c.score - tr.min)/(tr.max - tr.min))*100, 100) : 100;
+  const ptsToNext = tr.next ? (tr.max - c.score) : 0;
+  const NEXT_COLOR = { Platinum:'#bae6fd', Gold:'#fbbf24', Silver:'#d1d5db', Bronze:'#e8a05a' };
+  const nextColor = tr.next ? NEXT_COLOR[tr.next] : cfg.color;
+
+  // Points breakdown
+  const BREAKDOWN = {'1':{earned:6200,spent:1380},'2':{earned:2940,spent:800},'3':{earned:1080,spent:200},'4':{earned:280,spent:70}};
+  const bd = BREAKDOWN[c.id] || {earned:c.points,spent:0};
+  const dollarVal = (c.points/100).toFixed(2);
+
   document.getElementById('profile-left').innerHTML = `
     <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:${cfg.glowColor};filter:blur(50px);pointer-events:none;"></div>
     <div style="text-align:center;margin-bottom:20px;position:relative;">
@@ -751,25 +953,36 @@ function renderProfile() {
         </div>
       </div>
     </div>
-    <div style="border-radius:10px;border:1px solid ${cfg.pillBorder};background:${cfg.pillBg};padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
+    <div style="border-radius:10px;border:1px solid ${cfg.pillBorder};background:${cfg.pillBg};padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">
       <div style="width:24px;height:24px;border-radius:6px;background:${cfg.pillBg};border:1px solid ${cfg.pillBorder};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:${cfg.color};">${c.tier[0]}</div>
       <span style="font-size:13px;font-weight:700;color:${cfg.color};">${c.tier} Member</span>
     </div>
-    <div style="margin-bottom:20px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;">Points Balance</span>
-        <span style="font-size:13px;font-weight:700;color:white;">${c.points.toLocaleString()} pts</span>
+    <!-- Tier Progress -->
+    <div style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;">${tr.next ? 'Progress to ' + tr.next : 'Max Tier 🎉'}</span>
+        ${tr.next ? `<span style="font-size:10px;font-weight:700;color:${nextColor};">${ptsToNext} pts to go</span>` : ''}
       </div>
-      <div style="height:7px;background:rgba(15,34,80,0.8);border-radius:99px;overflow:hidden;">
+      <div style="height:6px;background:rgba(15,34,80,0.8);border-radius:99px;overflow:hidden;">
+        <div style="height:100%;width:${tierPct}%;background:linear-gradient(90deg,${cfg.ringColor}80,${cfg.ringColor});border-radius:99px;box-shadow:0 0 8px ${cfg.ringColor}60;transition:width .6s;"></div>
+      </div>
+    </div>
+    <!-- Points + $ -->
+    <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;">Points Balance</span>
+        <span style="font-size:11px;font-weight:700;color:#34d399;">$${dollarVal} value</span>
+      </div>
+      <div style="font-size:22px;font-weight:900;color:white;margin-bottom:6px;">${c.points.toLocaleString()} pts</div>
+      <div style="height:5px;background:rgba(15,34,80,0.8);border-radius:99px;overflow:hidden;">
         <div style="height:100%;width:${pointsPct}%;background:linear-gradient(90deg,#2563eb,#06b6d4);border-radius:99px;box-shadow:0 0 8px rgba(37,99,235,0.5);"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:#334155;margin-top:4px;"><span>0</span><span>5,000 pts max</span></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
       <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${c.reviews.length}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Reviews</div></div>
       <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:white;">${avgRating}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Avg Rating</div></div>
     </div>
-    <div style="margin-bottom:20px;">
+    <div style="margin-bottom:14px;">
       <p style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#475569;margin:0 0 8px;">Top Traits</p>
       <div style="display:flex;flex-direction:column;gap:6px;">
         ${topPos.map(([t,n])=>`<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(6,78,59,0.2);border:1px solid rgba(52,211,153,0.15);border-radius:7px;padding:7px 10px;"><span style="font-size:11px;color:#34d399;font-weight:600;">${t}</span><span style="font-size:10px;color:rgba(52,211,153,0.5);">${n}×</span></div>`).join('')}
@@ -782,16 +995,36 @@ function renderProfile() {
         : `<button onclick="claimProfile()" style="width:100%;border-radius:10px;border:1px solid rgba(37,99,235,0.35);background:rgba(37,99,235,0.12);color:#93c5fd;font-size:13px;font-weight:700;padding:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(37,99,235,0.22)';this.style.color='white'" onmouseout="this.style.background='rgba(37,99,235,0.12)';this.style.color='#93c5fd'">Claim This Profile</button>`}
     </div>`;
 
-  // Rewards card
+  // Points breakdown card
   document.getElementById('rewards-card').innerHTML = `
-    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(40px);pointer-events:none;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(37,99,235,0.06);filter:blur(40px);pointer-events:none;"></div>
+    <h3 style="font-size:16px;font-weight:900;color:white;margin:0 0 16px;">Points Breakdown</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;">
+      <div style="border-radius:10px;border:1px solid rgba(52,211,153,0.2);background:rgba(6,78,59,0.2);padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#34d399;">${bd.earned.toLocaleString()}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Earned</div></div>
+      <div style="border-radius:10px;border:1px solid rgba(248,113,113,0.2);background:rgba(127,29,29,0.2);padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#f87171;">${bd.spent.toLocaleString()}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Spent</div></div>
+      <div style="border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.4);padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:white;">${c.points.toLocaleString()}</div><div style="font-size:10px;color:#475569;margin-top:2px;">Balance</div></div>
+      <div style="border-radius:10px;border:1px solid rgba(234,179,8,0.2);background:rgba(120,53,15,0.2);padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#fbbf24;">$${dollarVal}</div><div style="font-size:10px;color:#475569;margin-top:2px;">$ Value</div></div>
+    </div>
+    <p style="font-size:11px;color:#334155;text-align:center;margin:0 0 16px;">100 points = $1.00 · Points never expire</p>
+    <div style="border-top:1px solid rgba(15,34,80,0.8);padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
       <div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:18px;">🏅</span><span style="font-size:14px;font-weight:700;color:white;">${c.points.toLocaleString()} points available</span></div>
-        <p style="font-size:13px;color:#64748b;margin:0;">Redeem for discounts with local partner businesses.${c.tier!=='Platinum'?' Keep earning to reach the next tier.':''}</p>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:16px;">🏅</span><span style="font-size:13px;font-weight:700;color:white;">${c.points.toLocaleString()} pts · <span style="color:#34d399;">$${dollarVal}</span></span></div>
+        <p style="font-size:12px;color:#64748b;margin:0;">Redeem for discounts, gift cards, and prize draws.</p>
       </div>
-      <button style="border-radius:10px;border:1px solid rgba(245,158,11,0.35);background:rgba(120,53,15,0.25);color:#fbbf24;font-size:13px;font-weight:700;padding:10px 20px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.background='rgba(120,53,15,0.4)'" onmouseout="this.style.background='rgba(120,53,15,0.25)'">Redeem</button>
+      <button onclick="showPage('rewards')" style="border-radius:10px;border:1px solid rgba(245,158,11,0.35);background:rgba(120,53,15,0.25);color:#fbbf24;font-size:13px;font-weight:700;padding:10px 18px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.background='rgba(120,53,15,0.4)'" onmouseout="this.style.background='rgba(120,53,15,0.25)'">View Rewards →</button>
     </div>`;
+
+  // Tips card — injected after rewards-card
+  const tipsCard = document.getElementById('profile-tips-card');
+  if (tipsCard) {
+    tipsCard.innerHTML = `
+      <h3 style="font-size:16px;font-weight:900;color:white;margin:0 0 14px;">💡 How to Improve Your Score</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px 14px;"><div style="font-size:20px;flex-shrink:0;">⏰</div><div><div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;">Show up on time</div><div style="font-size:12px;color:#64748b;line-height:1.5;">Being present and ready earns the highest-trust tag. Consistency builds your score fastest.</div></div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px 14px;"><div style="font-size:20px;flex-shrink:0;">💳</div><div><div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;">Pay without disputes</div><div style="font-size:12px;color:#64748b;line-height:1.5;">"Paid immediately" is the top-weighted positive tag. Prompt payment boosts every review.</div></div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;border-radius:10px;border:1px solid rgba(15,34,80,0.9);background:rgba(10,26,62,0.4);padding:12px 14px;"><div style="font-size:20px;flex-shrink:0;">💬</div><div><div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;">Communicate proactively</div><div style="font-size:12px;color:#64748b;line-height:1.5;">Send a heads-up if plans change. Easy to communicate reviews lift scores across all providers.</div></div></div>
+      </div>`;
+  }
 
   document.getElementById('review-count-badge').textContent = c.reviews.length + ' reviews';
   profileTab = 'all';
@@ -836,6 +1069,133 @@ function claimProfile() {
     profileClaimed = true;
     document.getElementById('claim-btn-area').innerHTML = `<div style="border-radius:10px;border:1px solid rgba(52,211,153,0.3);background:rgba(6,78,59,0.25);padding:12px;text-align:center;"><p style="font-size:13px;font-weight:700;color:#34d399;margin:0;">✓ Profile Claimed</p><p style="font-size:11px;color:rgba(52,211,153,0.5);margin:2px 0 0;">Verification pending</p></div>`;
   }, 900);
+}
+
+// ─────────────────── REWARDS ───────────────────
+let rewardsPoints = 4820;
+let drawEntries = 3;
+let redeemedOffers = new Set();
+let countdownInterval = null;
+
+const PARTNER_OFFERS = [
+  { name:'ProClean Services', type:'House Cleaning', offer:'$25 off your next cleaning', pts:250, emoji:'🧹' },
+  { name:'Elite HVAC Solutions', type:'HVAC Repair', offer:'Free diagnostic ($89 value)', pts:500, emoji:'❄️' },
+  { name:'Greenfield Landscaping', type:'Landscaping', offer:'10% off any project', pts:300, emoji:'🌿' },
+  { name:'Apex Plumbing', type:'Plumbing', offer:'$30 off service call', pts:300, emoji:'🔧' },
+  { name:'SunBright Solar', type:'Solar', offer:'Free consult + $50 credit', pts:400, emoji:'☀️' },
+  { name:'FreshCoat Painters', type:'Painting', offer:'Free color consultation', pts:150, emoji:'🎨' },
+];
+
+function pad2(n) { return String(n).padStart(2,'0'); }
+
+function startCountdown() {
+  if (countdownInterval) clearInterval(countdownInterval);
+  const target = new Date('2026-05-01T00:00:00Z').getTime();
+  const tick = () => {
+    const diff = target - Date.now();
+    if (diff <= 0) { clearInterval(countdownInterval); return; }
+    document.getElementById('cd-days').textContent = pad2(Math.floor(diff/86400000));
+    document.getElementById('cd-hrs').textContent  = pad2(Math.floor((diff%86400000)/3600000));
+    document.getElementById('cd-min').textContent  = pad2(Math.floor((diff%3600000)/60000));
+    document.getElementById('cd-sec').textContent  = pad2(Math.floor((diff%60000)/1000));
+  };
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+function updateRewardsUI() {
+  const balLine = document.getElementById('rewards-balance-line');
+  if (balLine) balLine.innerHTML = `<span style="font-weight:700;color:white;">${rewardsPoints.toLocaleString()} pts</span> available · <span style="font-weight:700;color:#34d399;">$${(rewardsPoints/100).toFixed(2)}</span> in value`;
+  const ptDisp = document.getElementById('draw-pts-display');
+  if (ptDisp) ptDisp.textContent = rewardsPoints.toLocaleString();
+  const entDisp = document.getElementById('draw-entries-display');
+  if (entDisp) entDisp.textContent = drawEntries;
+  const lowPts = document.getElementById('draw-low-pts');
+  if (lowPts) lowPts.style.display = rewardsPoints < 500 ? 'block' : 'none';
+}
+
+function enterDraw() {
+  if (rewardsPoints < 500) return;
+  const btn = document.getElementById('enter-draw-btn');
+  btn.textContent = 'Entering…';
+  btn.disabled = true;
+  setTimeout(()=>{
+    rewardsPoints -= 500;
+    drawEntries += 1;
+    btn.textContent = 'Enter Draw — 500 pts';
+    btn.disabled = false;
+    updateRewardsUI();
+    renderMarketplace();
+    renderGiftCards();
+  }, 800);
+}
+
+function renderMarketplace() {
+  const grid = document.getElementById('marketplace-grid');
+  if (!grid) return;
+  grid.innerHTML = PARTNER_OFFERS.map(o => {
+    const isRed = redeemedOffers.has(o.name);
+    const canAfford = rewardsPoints >= o.pts && !isRed;
+    return `<div class="glass" style="border-radius:14px;padding:18px;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="width:42px;height:42px;flex-shrink:0;border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(15,34,80,0.5);display:flex;align-items:center;justify-content:center;font-size:20px;">${o.emoji}</div>
+        <div style="min-width:0;"><div style="font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.name}</div><div style="font-size:11px;color:#475569;">${o.type}</div></div>
+      </div>
+      <p style="font-size:13px;color:#cbd5e1;flex:1;margin:0 0 12px;">${o.offer}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;font-weight:700;color:#60a5fa;">${o.pts.toLocaleString()} pts</span>
+        ${isRed
+          ? `<span style="border-radius:7px;border:1px solid rgba(52,211,153,0.3);background:rgba(6,78,59,0.25);color:#34d399;font-size:11px;font-weight:700;padding:6px 10px;">✓ Redeemed</span>`
+          : `<button onclick="redeemOffer('${o.name}',${o.pts})" ${canAfford?'':'disabled'} style="border-radius:7px;background:${canAfford?'#2563eb':'rgba(37,99,235,0.2)'};color:${canAfford?'white':'#334155'};font-size:11px;font-weight:700;padding:6px 12px;border:none;cursor:${canAfford?'pointer':'not-allowed'};transition:all .15s;">Redeem</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function redeemOffer(name, pts) {
+  if (rewardsPoints < pts || redeemedOffers.has(name)) return;
+  rewardsPoints -= pts;
+  redeemedOffers.add(name);
+  updateRewardsUI();
+  renderMarketplace();
+  renderGiftCards();
+}
+
+function renderGiftCards() {
+  const grid = document.getElementById('giftcards-grid');
+  if (!grid) return;
+  const cards = [
+    { name:'Amazon Gift Card', value:'$100', pts:10000, logo:'🛒' },
+    { name:'Visa Gift Card', value:'$100', pts:10000, logo:'💳' },
+  ];
+  grid.innerHTML = cards.map(card => {
+    const pct = Math.min((rewardsPoints/card.pts)*100, 100);
+    const locked = rewardsPoints < card.pts;
+    return `<div class="glass" style="border-radius:14px;padding:20px;position:relative;overflow:hidden;${locked?'opacity:0.82;':''}">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(16,185,129,0.06),transparent);pointer-events:none;"></div>
+      <div style="position:relative;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:28px;">${card.logo}</span><div><div style="font-size:14px;font-weight:700;color:white;">${card.name}</div><div style="font-size:11px;color:#475569;">${card.value} value</div></div></div>
+          ${locked?'<span style="border-radius:99px;border:1px solid rgba(71,85,105,0.4);background:rgba(30,41,59,0.6);color:#94a3b8;font-size:11px;font-weight:700;padding:4px 10px;">🔒 Locked</span>':''}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:#475569;">Progress</span><span style="font-weight:600;color:white;">${rewardsPoints.toLocaleString()} / ${card.pts.toLocaleString()} pts</span></div>
+        <div style="height:8px;background:rgba(15,34,80,0.8);border-radius:99px;overflow:hidden;margin-bottom:10px;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#059669,#34d399);border-radius:99px;box-shadow:0 0 8px rgba(16,185,129,0.4);"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <p style="font-size:11px;color:#475569;margin:0;">${locked?(card.pts-rewardsPoints).toLocaleString()+' pts to go':'You have enough points!'}</p>
+          <button ${locked?'disabled':''} style="border-radius:7px;background:${locked?'rgba(16,185,129,0.15)':'#059669'};color:${locked?'#334155':'white'};font-size:11px;font-weight:700;padding:6px 12px;border:none;cursor:${locked?'not-allowed':'pointer'};opacity:${locked?'0.5':'1'};">Redeem</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initRewards() {
+  updateRewardsUI();
+  startCountdown();
+  renderMarketplace();
+  renderGiftCards();
 }
 
 // ─────────────────── INIT ───────────────────

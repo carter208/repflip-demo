@@ -15,6 +15,7 @@ export interface Consumer {
   name: string;
   phone: string;
   email: string;
+  city: string;
   score: number;
   tier: Tier;
   points: number;
@@ -77,6 +78,7 @@ export const CONSUMERS: Consumer[] = [
     name: "Marcus Thompson",
     phone: "(312) 555-0142",
     email: "marcus.t@email.com",
+    city: "Boise, ID",
     score: 94,
     tier: "Platinum",
     points: 4820,
@@ -115,6 +117,7 @@ export const CONSUMERS: Consumer[] = [
     name: "Sarah Chen",
     phone: "(415) 555-0287",
     email: "s.chen@email.com",
+    city: "Nampa, ID",
     score: 81,
     tier: "Gold",
     points: 2140,
@@ -153,6 +156,7 @@ export const CONSUMERS: Consumer[] = [
     name: "DeShawn Williams",
     phone: "(713) 555-0093",
     email: "deshawn.w@email.com",
+    city: "Meridian, ID",
     score: 62,
     tier: "Silver",
     points: 880,
@@ -183,6 +187,7 @@ export const CONSUMERS: Consumer[] = [
     name: "Rebecca Okafor",
     phone: "(202) 555-0318",
     email: "r.okafor@email.com",
+    city: "Eagle, ID",
     score: 38,
     tier: "Bronze",
     points: 210,

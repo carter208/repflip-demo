@@ -1,11 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
-import { CONSUMERS, TIER_CONFIG, type Consumer } from "@/lib/data";
+import { CONSUMERS, TIER_CONFIG, type Consumer, type Tier } from "@/lib/data";
+
+// Points breakdown data (100 pts = $1)
+const POINTS_BREAKDOWN: Record<string, { earned: number; spent: number }> = {
+  "1": { earned: 6200, spent: 1380 },
+  "2": { earned: 2940, spent: 800 },
+  "3": { earned: 1080, spent: 200 },
+  "4": { earned: 280, spent: 70 },
+};
+
+const TIPS = [
+  { emoji: "⏰", title: "Show up on time", desc: "Being present and ready earns the highest-trust tag. Consistency builds your score fastest." },
+  { emoji: "💳", title: "Pay without disputes", desc: '"Paid immediately" is the top-weighted positive tag. Prompt payment boosts every review.' },
+  { emoji: "💬", title: "Communicate proactively", desc: "Send a heads-up if plans change. Easy to communicate reviews lift scores across all providers." },
+];
+
+function getTierProgress(score: number, tier: Tier) {
+  if (tier === "Platinum") return { pct: 100, nextTier: null, pointsToNext: 0, max: 100, min: 90 };
+  if (tier === "Gold") return { pct: ((score - 75) / 15) * 100, nextTier: "Platinum" as Tier, pointsToNext: 90 - score, max: 90, min: 75 };
+  if (tier === "Silver") return { pct: ((score - 55) / 20) * 100, nextTier: "Gold" as Tier, pointsToNext: 75 - score, max: 75, min: 55 };
+  return { pct: (score / 55) * 100, nextTier: "Silver" as Tier, pointsToNext: 55 - score, max: 55, min: 0 };
+}
 
 function StarDisplay({ rating }: { rating: number }) {
   return (
@@ -23,25 +44,14 @@ function ScoreCircle({ score, tier }: { score: number; tier: Consumer["tier"] })
   const cfg = TIER_CONFIG[tier];
   const circumference = 2 * Math.PI * 56;
   const progress = (score / 100) * circumference;
-
   return (
     <div className="relative flex h-44 w-44 items-center justify-center">
-      {/* Outer glow ring */}
-      <div
-        className="absolute inset-0 rounded-full opacity-20 blur-xl"
-        style={{ backgroundColor: cfg.color }}
-      />
+      <div className="absolute inset-0 rounded-full opacity-20 blur-xl" style={{ backgroundColor: cfg.color }} />
       <svg className="absolute h-44 w-44 -rotate-90" viewBox="0 0 130 130">
         <circle cx="65" cy="65" r="56" fill="none" stroke="rgba(37,99,235,0.08)" strokeWidth="10" />
         <circle
-          cx="65"
-          cy="65"
-          r="56"
-          fill="none"
-          stroke={cfg.color}
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={`${progress} ${circumference}`}
+          cx="65" cy="65" r="56" fill="none" stroke={cfg.color} strokeWidth="10"
+          strokeLinecap="round" strokeDasharray={`${progress} ${circumference}`}
           style={{ filter: `drop-shadow(0 0 8px ${cfg.color}80)` }}
         />
       </svg>
@@ -53,34 +63,14 @@ function ScoreCircle({ score, tier }: { score: number; tier: Consumer["tier"] })
   );
 }
 
-function PointsMeter({ points }: { points: number }) {
-  const max = 5000;
-  const pct = Math.min((points / max) * 100, 100);
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Points Balance</span>
-        <span className="text-sm font-bold text-white">{points.toLocaleString()} pts</span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-blue-950/60">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all"
-          style={{ width: `${pct}%`, boxShadow: "0 0 8px rgba(37,99,235,0.5)" }}
-        />
-      </div>
-      <div className="mt-1 flex justify-between text-xs text-slate-600">
-        <span>0</span>
-        <span>{max.toLocaleString()} pts to max</span>
-      </div>
-    </div>
-  );
-}
-
 function ProfileContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "1";
   const consumer = CONSUMERS.find((c) => c.id === id) ?? CONSUMERS[0];
   const cfg = TIER_CONFIG[consumer.tier];
+  const breakdown = POINTS_BREAKDOWN[consumer.id] ?? { earned: consumer.points, spent: 0 };
+  const tierProgress = getTierProgress(consumer.score, consumer.tier);
+  const nextCfg = tierProgress.nextTier ? TIER_CONFIG[tierProgress.nextTier] : null;
 
   const [claimed, setClaimed] = useState(false);
   const [claiming, setClaiming] = useState(false);
@@ -88,10 +78,7 @@ function ProfileContent() {
 
   const handleClaim = () => {
     setClaiming(true);
-    setTimeout(() => {
-      setClaiming(false);
-      setClaimed(true);
-    }, 1000);
+    setTimeout(() => { setClaiming(false); setClaimed(true); }, 1000);
   };
 
   const allTags = consumer.reviews.flatMap((r) => r.tags);
@@ -129,7 +116,7 @@ function ProfileContent() {
               className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
                 c.id === id
                   ? "border-blue-600/50 bg-blue-600/20 text-blue-300"
-                  : "border-blue-900/40 bg-blue-950/20 text-slate-400 hover:text-white hover:border-blue-800/40"
+                  : "border-blue-900/40 bg-blue-950/20 text-slate-400 hover:border-blue-800/40 hover:text-white"
               }`}
             >
               {c.name}
@@ -138,7 +125,7 @@ function ProfileContent() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-3">
-          {/* Left: Score Card */}
+          {/* ── Left: Score Card ── */}
           <div className="lg:col-span-1">
             <div className="glass-card relative overflow-hidden rounded-2xl p-6 shadow-card-glow sticky top-24">
               <div
@@ -147,26 +134,26 @@ function ProfileContent() {
               />
 
               {/* Avatar + Name */}
-              <div className="relative mb-6 text-center">
+              <div className="relative mb-5 text-center">
                 <div
-                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white"
+                  className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white"
                   style={{ background: `linear-gradient(135deg, ${cfg.color}30, ${cfg.color}10)`, border: `1px solid ${cfg.color}25` }}
                 >
                   {consumer.name.charAt(0)}
                 </div>
                 <h1 className="text-xl font-black text-white">{consumer.name}</h1>
-                <p className="mt-0.5 text-sm text-slate-400">{consumer.email}</p>
-                <p className="text-xs text-slate-600 mt-0.5">Member since {consumer.memberSince}</p>
+                <p className="mt-0.5 text-sm text-slate-400">{consumer.city}</p>
+                <p className="mt-0.5 text-xs text-slate-600">Profile created {consumer.memberSince}</p>
               </div>
 
               {/* Score Ring */}
-              <div className="relative mb-6 flex justify-center score-ring rounded-full">
+              <div className="relative mb-5 flex justify-center score-ring rounded-full">
                 <ScoreCircle score={consumer.score} tier={consumer.tier} />
               </div>
 
               {/* Tier Badge */}
               <div
-                className="mb-6 flex items-center justify-center gap-2 rounded-xl border py-2.5"
+                className="mb-4 flex items-center justify-center gap-2 rounded-xl border py-2.5"
                 style={{ backgroundColor: `${cfg.color}12`, borderColor: `${cfg.color}30` }}
               >
                 <div
@@ -180,32 +167,70 @@ function ProfileContent() {
                 </span>
               </div>
 
-              {/* Points */}
-              <div className="mb-6">
-                <PointsMeter points={consumer.points} />
+              {/* Tier Progress */}
+              <div className="mb-4">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    {tierProgress.nextTier ? `Progress to ${tierProgress.nextTier}` : "Max Tier Reached 🎉"}
+                  </span>
+                  {tierProgress.nextTier && (
+                    <span className="text-xs font-semibold" style={{ color: nextCfg?.color }}>
+                      {tierProgress.pointsToNext} pts to go
+                    </span>
+                  )}
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-blue-950/60">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(tierProgress.pct, 100)}%`,
+                      background: `linear-gradient(90deg, ${cfg.color}99, ${cfg.color})`,
+                      boxShadow: `0 0 8px ${cfg.color}60`,
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Stats Row */}
-              <div className="mb-6 grid grid-cols-2 gap-2">
+              {/* Points + $ Value */}
+              <div className="mb-4 rounded-xl border border-blue-900/40 bg-blue-950/30 p-4">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Points Balance</span>
+                  <span className="text-xs font-bold text-emerald-400">
+                    ${(consumer.points / 100).toFixed(2)} value
+                  </span>
+                </div>
+                <div className="text-2xl font-black text-white">{consumer.points.toLocaleString()} pts</div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-blue-950">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
+                    style={{ width: `${Math.min((consumer.points / 5000) * 100, 100)}%`, boxShadow: "0 0 6px rgba(37,99,235,0.5)" }}
+                  />
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="mb-4 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">
                   <div className="text-xl font-black text-white">{consumer.reviews.length}</div>
                   <div className="text-xs text-slate-500">Reviews</div>
                 </div>
                 <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">
-                  <div className="text-xl font-black text-white">{avgRating.toFixed(1)}</div>
+                  <div className="text-xl font-black text-white">
+                    {consumer.reviews.length > 0 ? avgRating.toFixed(1) : "—"}
+                  </div>
                   <div className="text-xs text-slate-500">Avg Rating</div>
                 </div>
               </div>
 
               {/* Top Tags */}
-              <div className="mb-6">
+              <div className="mb-5">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Top Traits</p>
                 <div className="flex flex-col gap-1.5">
                   {Object.entries(positiveTagCounts)
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 3)
                     .map(([tag, count]) => (
-                      <div key={tag} className="flex items-center justify-between rounded-lg bg-emerald-950/30 border border-emerald-900/30 px-3 py-1.5">
+                      <div key={tag} className="flex items-center justify-between rounded-lg border border-emerald-900/30 bg-emerald-950/30 px-3 py-1.5">
                         <span className="text-xs font-medium text-emerald-400">{tag}</span>
                         <span className="text-xs text-emerald-600">{count}×</span>
                       </div>
@@ -214,7 +239,7 @@ function ProfileContent() {
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 2)
                     .map(([tag, count]) => (
-                      <div key={tag} className="flex items-center justify-between rounded-lg bg-red-950/30 border border-red-900/30 px-3 py-1.5">
+                      <div key={tag} className="flex items-center justify-between rounded-lg border border-red-900/30 bg-red-950/30 px-3 py-1.5">
                         <span className="text-xs font-medium text-red-400">{tag}</span>
                         <span className="text-xs text-red-600">{count}×</span>
                       </div>
@@ -226,7 +251,7 @@ function ProfileContent() {
               {claimed ? (
                 <div className="w-full rounded-xl border border-emerald-700/40 bg-emerald-950/40 py-3 text-center">
                   <p className="text-sm font-bold text-emerald-400">✓ Profile Claimed</p>
-                  <p className="text-xs text-emerald-700 mt-0.5">Verification pending</p>
+                  <p className="mt-0.5 text-xs text-emerald-700">Verification pending</p>
                 </div>
               ) : (
                 <button
@@ -240,8 +265,10 @@ function ProfileContent() {
             </div>
           </div>
 
-          {/* Right: Review History */}
-          <div className="lg:col-span-2">
+          {/* ── Right Column ── */}
+          <div className="lg:col-span-2 flex flex-col gap-5">
+
+            {/* Review History */}
             <div className="glass-card rounded-2xl p-6">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-lg font-black text-white">Review History</h2>
@@ -260,7 +287,11 @@ function ProfileContent() {
                         : "text-slate-500 hover:text-white"
                     }`}
                   >
-                    {tab === "all" ? `All (${consumer.reviews.length})` : tab === "positive" ? "Positive" : "Concerns"}
+                    {tab === "all"
+                      ? `All (${consumer.reviews.length})`
+                      : tab === "positive"
+                      ? "Positive"
+                      : "Concerns"}
                   </button>
                 ))}
               </div>
@@ -279,18 +310,16 @@ function ProfileContent() {
                           <h3 className="font-bold text-white">{review.businessName}</h3>
                           <p className="text-xs text-slate-500">{review.businessType}</p>
                         </div>
-                        <div className="text-right shrink-0">
+                        <div className="shrink-0 text-right">
                           <StarDisplay rating={review.rating} />
                           <p className="mt-1 text-xs text-slate-600">{review.date}</p>
                         </div>
                       </div>
-
                       {review.notes && (
-                        <p className="mb-3 text-sm leading-relaxed text-slate-400 border-l-2 border-blue-800/40 pl-3">
+                        <p className="mb-3 border-l-2 border-blue-800/40 pl-3 text-sm leading-relaxed text-slate-400">
                           &ldquo;{review.notes}&rdquo;
                         </p>
                       )}
-
                       <div className="flex flex-wrap gap-1.5">
                         {review.tags.map((tag) => {
                           const isNeg = negativeSet.has(tag);
@@ -299,8 +328,8 @@ function ProfileContent() {
                               key={tag}
                               className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
                                 isNeg
-                                  ? "bg-red-950/40 text-red-400 border-red-800/30"
-                                  : "bg-emerald-950/40 text-emerald-400 border-emerald-800/30"
+                                  ? "border-red-800/30 bg-red-950/40 text-red-400"
+                                  : "border-emerald-800/30 bg-emerald-950/40 text-emerald-400"
                               }`}
                             >
                               {isNeg ? "✕" : "✓"} {tag}
@@ -314,25 +343,77 @@ function ProfileContent() {
               )}
             </div>
 
+            {/* Points Breakdown */}
+            <div className="glass-card relative overflow-hidden rounded-2xl p-6">
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-600/8 blur-2xl pointer-events-none" />
+              <h2 className="mb-4 text-lg font-black text-white">Points Breakdown</h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-xl border border-emerald-900/30 bg-emerald-950/20 p-4 text-center">
+                  <div className="text-xl font-black text-emerald-400">{breakdown.earned.toLocaleString()}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">Total Earned</div>
+                </div>
+                <div className="rounded-xl border border-red-900/30 bg-red-950/20 p-4 text-center">
+                  <div className="text-xl font-black text-red-400">{breakdown.spent.toLocaleString()}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">Total Spent</div>
+                </div>
+                <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-4 text-center">
+                  <div className="text-xl font-black text-white">{consumer.points.toLocaleString()}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">Balance</div>
+                </div>
+                <div className="rounded-xl border border-yellow-900/30 bg-yellow-950/20 p-4 text-center">
+                  <div className="text-xl font-black text-yellow-400">
+                    ${(consumer.points / 100).toFixed(2)}
+                  </div>
+                  <div className="mt-0.5 text-xs text-slate-500">$ Value</div>
+                </div>
+              </div>
+              <p className="mt-3 text-center text-xs text-slate-600">100 points = $1.00 · Points never expire</p>
+            </div>
+
+            {/* How to Improve */}
+            <div className="glass-card rounded-2xl p-6">
+              <h2 className="mb-4 text-lg font-black text-white">💡 How to Improve Your Score</h2>
+              <div className="flex flex-col gap-3">
+                {TIPS.map((tip) => (
+                  <div
+                    key={tip.title}
+                    className="flex gap-4 rounded-xl border border-blue-900/30 bg-blue-950/20 p-4"
+                  >
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-blue-900/40 bg-blue-950/40 text-xl">
+                      {tip.emoji}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">{tip.title}</div>
+                      <div className="mt-0.5 text-xs leading-relaxed text-slate-400">{tip.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Rewards CTA */}
-            <div className="mt-4 glass-card relative overflow-hidden rounded-2xl p-6">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl" />
+            <div className="glass-card relative overflow-hidden rounded-2xl p-6">
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl pointer-events-none" />
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="mb-1 flex items-center gap-2">
                     <span className="text-xl">🏅</span>
                     <span className="text-sm font-bold text-white">
-                      {consumer.points.toLocaleString()} points available
+                      {consumer.points.toLocaleString()} points ·{" "}
+                      <span className="text-emerald-400">${(consumer.points / 100).toFixed(2)}</span>
                     </span>
                   </div>
                   <p className="text-sm text-slate-400">
-                    Redeem for discounts with 200+ partner businesses.
+                    Redeem for discounts, gift cards, and monthly prize draws.
                     {consumer.tier !== "Platinum" && " Keep earning to reach the next tier."}
                   </p>
                 </div>
-                <button className="shrink-0 rounded-xl border border-yellow-600/40 bg-yellow-950/30 px-5 py-2.5 text-sm font-bold text-yellow-400 transition-all hover:bg-yellow-900/40 hover:text-yellow-300">
-                  Redeem
-                </button>
+                <Link
+                  href="/rewards"
+                  className="shrink-0 rounded-xl border border-yellow-600/40 bg-yellow-950/30 px-5 py-2.5 text-sm font-bold text-yellow-400 transition-all hover:bg-yellow-900/40 hover:text-yellow-300"
+                >
+                  View Rewards
+                </Link>
               </div>
             </div>
           </div>
@@ -344,11 +425,13 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#020810] flex items-center justify-center">
-        <div className="text-slate-500">Loading profile…</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#020810]">
+          <div className="text-slate-500">Loading profile…</div>
+        </div>
+      }
+    >
       <ProfileContent />
     </Suspense>
   );
