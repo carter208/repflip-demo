@@ -106,7 +106,7 @@ tailwind.config = {
           Get Started Free
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
         </button>
-        <button class="btn-secondary" style="font-size:16px;padding:16px 32px;" onclick="showPage('profile')">View Consumer Profile</button>
+        <button class="btn-secondary" style="font-size:16px;padding:16px 32px;" onclick="showPage('profile')">Get Started</button>
       </div>
 
       <!-- Score Preview Card -->
@@ -613,8 +613,11 @@ const NEG_TAGS_LIST = ['No-show','Disputed payment','Aggressive','Scope creep'];
 let currentPage = 'landing';
 
 function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  const target = document.getElementById('page-' + page);
+  if (!target) { console.error('Page not found: page-' + page); return; }
+  target.classList.add('active');
+  target.style.display = 'block';
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
   const navEl = document.getElementById('nav-' + page);
   if (navEl) navEl.classList.add('active');

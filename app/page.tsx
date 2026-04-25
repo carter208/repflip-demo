@@ -93,7 +93,7 @@ export default function LandingPage() {
               href="/profile"
               className="rounded-xl border border-blue-800/50 bg-blue-950/30 px-8 py-4 text-base font-semibold text-blue-300 backdrop-blur-sm transition-all hover:border-blue-600/60 hover:bg-blue-900/30 hover:text-white"
             >
-              View Consumer Profile
+              Get Started
             </Link>
           </div>
 
