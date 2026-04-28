@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
 const CONSUMER = { name: "Marcus Thompson", points: 4820, tier: "Platinum" as const };
@@ -76,6 +77,19 @@ export default function RewardsPage() {
     <div className="min-h-screen bg-[#020810]">
       <Navbar />
       <div className="mx-auto max-w-4xl px-6 pb-24 pt-32">
+
+        {/* Back nav */}
+        <div className="mb-6">
+          <Link
+            href="/profile"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 transition-colors hover:text-blue-300"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Consumer Profile
+          </Link>
+        </div>
 
         {/* Header */}
         <div className="mb-10">
@@ -285,6 +299,28 @@ export default function RewardsPage() {
             100 points = $1.00 value · Gift cards processed within 3 business days
           </p>
         </section>
+
+        {/* Navigation footer — escape hatch so users are never trapped */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3 border-t border-blue-900/30 pt-8">
+          <Link
+            href="/profile"
+            className="rounded-lg border border-blue-800/40 bg-blue-950/30 px-5 py-2.5 text-sm font-medium text-slate-400 transition-all hover:bg-blue-900/30 hover:text-white"
+          >
+            ← Consumer Profile
+          </Link>
+          <Link
+            href="/how-it-works"
+            className="rounded-lg border border-blue-800/40 bg-blue-950/30 px-5 py-2.5 text-sm font-medium text-slate-400 transition-all hover:bg-blue-900/30 hover:text-white"
+          >
+            How It Works
+          </Link>
+          <Link
+            href="/dashboard"
+            className="rounded-lg border border-blue-800/40 bg-blue-950/30 px-5 py-2.5 text-sm font-medium text-slate-400 transition-all hover:bg-blue-900/30 hover:text-white"
+          >
+            Business Dashboard
+          </Link>
+        </div>
       </div>
     </div>
   );
