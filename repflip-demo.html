@@ -48,36 +48,39 @@ tailwind.config = {
   .tab-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: #64748b; transition: all 0.2s; }
   .tab-btn.active { background: #2563eb; color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
   .tier-pill { border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; display: inline-block; }
-  /* Mobile nav */
-  @media (max-width: 767px) {
-    #nav-links { display: none !important; }
-    #nav-cta-btn { display: none !important; }
-    #hamburger-btn { display: flex !important; }
+  /* ── Responsive nav ── */
+  #desktop-nav { display: flex; align-items: center; gap: 4px; }
+  #hamburger-btn { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(37,99,235,0.35); background: rgba(37,99,235,0.12); cursor: pointer; flex-shrink: 0; }
+  #hamburger-btn:hover { background: rgba(37,99,235,0.22); }
+  #mobile-menu { display: none; background: #040d21; border-top: 1px solid rgba(37,99,235,0.15); }
+  #mobile-menu.is-open { display: block; }
+  .mob-link { display: flex; align-items: center; gap: 12px; padding: 15px 20px; font-size: 15px; font-weight: 500; color: #cbd5e1; cursor: pointer; border-bottom: 1px solid rgba(37,99,235,0.08); transition: background .15s, color .15s; }
+  .mob-link:active { background: rgba(37,99,235,0.15); color: white; }
+  .mob-section { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #334155; padding: 14px 20px 4px; }
+  @media screen and (max-width: 767px) {
+    #desktop-nav { display: none; }
+    #hamburger-btn { display: flex; }
   }
-  @media (min-width: 768px) {
-    #hamburger-btn { display: none !important; }
-    #mobile-menu { display: none !important; }
-  }
-  .mobile-nav-link { display:flex;align-items:center;gap:12px;padding:14px 20px;font-size:15px;font-weight:500;color:#cbd5e1;cursor:pointer;border-bottom:1px solid rgba(15,34,80,0.7);transition:all .15s; }
-  .mobile-nav-link:active, .mobile-nav-link:hover { background:rgba(37,99,235,0.12);color:white; }
-  .mobile-nav-sublabel { font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#334155;padding:12px 20px 6px; }
 </style>
 </head>
 <body>
 
 <!-- NAVBAR -->
-<nav style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(2,8,16,0.95);backdrop-filter:blur(16px);">
-  <!-- Top bar -->
-  <div style="border-bottom:1px solid rgba(15,34,80,0.8);max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+<nav id="main-nav" style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(2,8,16,0.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(15,34,80,0.8);">
+
+  <!-- ── Top bar ── -->
+  <div style="max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+
     <!-- Logo -->
-    <div onclick="showPage('landing');closeMobileMenu();" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+    <div onclick="showPage('landing');closeMobileMenu();" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0;">
       <div style="width:32px;height:32px;background:#2563eb;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(37,99,235,0.4);">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" fill="white" fill-opacity="0.9"/><path d="M8 5L11 6.75V10.25L8 12L5 10.25V6.75L8 5Z" fill="white"/></svg>
       </div>
       <span style="font-size:18px;font-weight:800;color:white;letter-spacing:-0.02em;">Rep<span style="color:#60a5fa;">flip</span></span>
     </div>
-    <!-- Desktop nav links (hidden on mobile via CSS) -->
-    <div style="display:flex;align-items:center;gap:4px;" id="nav-links">
+
+    <!-- Desktop nav links — hidden on mobile via #desktop-nav CSS rule -->
+    <div id="desktop-nav">
       <span class="nav-link" id="nav-dashboard" onclick="showPage('dashboard')">Business Dashboard</span>
       <span class="nav-link" id="nav-submit" onclick="showPage('submit')">Submit Review</span>
       <!-- For Consumers dropdown -->
@@ -94,49 +97,35 @@ tailwind.config = {
       </div>
       <span class="nav-link" id="nav-about" onclick="showPage('about')">About</span>
     </div>
-    <!-- Right side: desktop CTA + hamburger -->
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button id="nav-cta-btn" class="btn-primary" style="padding:8px 18px;font-size:14px;" onclick="showPage('dashboard')">For Businesses</button>
-      <!-- Hamburger button — shown only on mobile via CSS -->
-      <button id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu" style="display:none;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:1px solid rgba(37,99,235,0.3);background:rgba(37,99,235,0.1);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(37,99,235,0.2)'" onmouseout="this.style.background='rgba(37,99,235,0.1)'">
-        <svg id="hamburger-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#93c5fd" stroke-width="2.2" stroke-linecap="round">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
+
+    <!-- Right side: CTA (always visible) + hamburger (mobile only, shown via CSS) -->
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <button class="btn-primary" style="padding:8px 18px;font-size:14px;" onclick="showPage('dashboard')">For Businesses</button>
+      <!-- Hamburger: NO inline display — CSS controls visibility -->
+      <button id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
+        <svg id="hamburger-icon" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#93c5fd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
     </div>
+
   </div>
-  <!-- Mobile menu panel — shown only on mobile via CSS + JS -->
-  <div id="mobile-menu" style="display:none;border-bottom:1px solid rgba(15,34,80,0.8);background:rgba(2,8,16,0.98);">
-    <p class="mobile-nav-sublabel">Business</p>
-    <div class="mobile-nav-link" onclick="showPage('dashboard');closeMobileMenu();">
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Business Dashboard
-    </div>
-    <div class="mobile-nav-link" onclick="showPage('submit');closeMobileMenu();">
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-      Submit Review
-    </div>
-    <p class="mobile-nav-sublabel">Consumers</p>
-    <div class="mobile-nav-link" onclick="showPage('profile');closeMobileMenu();">
-      <span style="font-size:18px;line-height:1;">👤</span>
-      Consumer Profile
-    </div>
-    <div class="mobile-nav-link" onclick="showPage('rewards');closeMobileMenu();">
-      <span style="font-size:18px;line-height:1;">🏆</span>
-      Rewards
-    </div>
-    <div class="mobile-nav-link" onclick="showPage('how-it-works');closeMobileMenu();">
-      <span style="font-size:18px;line-height:1;">💡</span>
-      How It Works
-    </div>
-    <div class="mobile-nav-link" onclick="showPage('about');closeMobileMenu();" style="border-bottom:none;">
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01"/></svg>
-      About
-    </div>
-    <div style="padding:14px 20px;">
-      <button class="btn-primary" style="width:100%;padding:12px;font-size:15px;" onclick="showPage('dashboard');closeMobileMenu();">For Businesses →</button>
-    </div>
+
+  <!-- ── Mobile menu — toggled via .is-open class ── -->
+  <div id="mobile-menu">
+    <div onclick="showPage('landing');closeMobileMenu();" class="mob-link">🏠 Home</div>
+    <p class="mob-section">Business</p>
+    <div onclick="showPage('dashboard');closeMobileMenu();" class="mob-link">📊 Business Dashboard</div>
+    <div onclick="showPage('submit');closeMobileMenu();" class="mob-link">✏️ Submit Review</div>
+    <p class="mob-section">Consumers</p>
+    <div onclick="showPage('profile');closeMobileMenu();" class="mob-link">👤 Consumer Profile</div>
+    <div onclick="showPage('rewards');closeMobileMenu();" class="mob-link">🏆 Rewards</div>
+    <div onclick="showPage('how-it-works');closeMobileMenu();" class="mob-link">💡 How It Works</div>
+    <div onclick="showPage('about');closeMobileMenu();" class="mob-link" style="border-bottom:none;">ℹ️ About</div>
   </div>
+
 </nav>
 
 <!-- ═══════════════════════════════════════ LANDING PAGE ═══════════════════════════════════════ -->
@@ -716,27 +705,22 @@ document.addEventListener('click', function(e) {
 });
 
 // ─────────────────── MOBILE MENU ───────────────────
-let mobileMenuOpen = false;
 function toggleMobileMenu() {
-  mobileMenuOpen = !mobileMenuOpen;
   const menu = document.getElementById('mobile-menu');
   const icon = document.getElementById('hamburger-icon');
-  if (mobileMenuOpen) {
-    menu.style.display = 'block';
-    // Switch to X icon
-    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>';
+  const isOpen = menu.classList.toggle('is-open');
+  // Swap between hamburger lines and X
+  if (isOpen) {
+    icon.innerHTML = '<line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/>';
   } else {
-    menu.style.display = 'none';
-    // Switch back to hamburger icon
-    icon.innerHTML = '<path d="M4 6h16M4 12h16M4 18h16"/>';
+    icon.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
   }
 }
 function closeMobileMenu() {
-  mobileMenuOpen = false;
   const menu = document.getElementById('mobile-menu');
   const icon = document.getElementById('hamburger-icon');
-  if (menu) menu.style.display = 'none';
-  if (icon) icon.innerHTML = '<path d="M4 6h16M4 12h16M4 18h16"/>';
+  if (menu) menu.classList.remove('is-open');
+  if (icon) icon.innerHTML = '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>';
 }
 
 // ─────────────────── LANDING ───────────────────
