@@ -612,7 +612,7 @@ const NEG_TAGS_LIST = ['No-show','Disputed payment','Aggressive','Scope creep'];
 // ─────────────────── NAV ───────────────────
 let currentPage = 'landing';
 
-function showPage(page) {
+function showPage(page, keepProfileId) {
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
   const target = document.getElementById('page-' + page);
   if (!target) { console.error('Page not found: page-' + page); return; }
@@ -632,7 +632,7 @@ function showPage(page) {
   window.scrollTo(0, 0);
   if (page === 'dashboard') renderDashboard();
   if (page === 'submit') initSubmitForm();
-  if (page === 'profile') { currentProfileId = '1'; renderProfile(); }
+  if (page === 'profile') { if (!keepProfileId) currentProfileId = '1'; renderProfile(); }
   if (page === 'rewards') initRewards();
 }
 
@@ -771,7 +771,7 @@ function renderDashboard(filter='') {
       </div>
       <div style="border-top:1px solid rgba(15,34,80,0.8);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <span onclick="viewProfile('${c.id}')" style="font-size:13px;font-weight:600;color:#60a5fa;cursor:pointer;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">View Full Profile →</span>
-        <button class="btn-primary" onclick="showPage('submit')" style="padding:10px 20px;font-size:13px;">Submit Review</button>
+        <button class="btn-primary" onclick="selectedConsumerId='${c.id}';showPage('submit')" style="padding:10px 20px;font-size:13px;">Submit Review</button>
       </div>
     </div>`;
   }).join('');
@@ -893,7 +893,7 @@ let profileClaimed = false;
 
 function viewProfile(id) {
   currentProfileId = id;
-  showPage('profile');
+  showPage('profile', true);
 }
 
 function setTab(tab) {
@@ -1115,6 +1115,13 @@ function updateRewardsUI() {
   if (entDisp) entDisp.textContent = drawEntries;
   const lowPts = document.getElementById('draw-low-pts');
   if (lowPts) lowPts.style.display = rewardsPoints < 500 ? 'block' : 'none';
+  const enterBtn = document.getElementById('enter-draw-btn');
+  if (enterBtn) {
+    const insufficient = rewardsPoints < 500;
+    enterBtn.disabled = insufficient;
+    enterBtn.style.opacity = insufficient ? '0.4' : '1';
+    enterBtn.style.cursor = insufficient ? 'not-allowed' : 'pointer';
+  }
 }
 
 function enterDraw() {
