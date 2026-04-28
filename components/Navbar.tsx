@@ -4,11 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// ── Link definitions ────────────────────────────────────────────────────────
+// ── Link definitions ─────────────────────────────────────────────────────────
 
 const businessLinks = [
   { href: "/dashboard", label: "Business Dashboard" },
-  { href: "/submit-review", label: "Submit Review" },
+  { href: "/review", label: "Submit Review" },
 ];
 
 const consumerLinks = [
@@ -17,62 +17,57 @@ const consumerLinks = [
   { href: "/how-it-works", label: "How It Works", emoji: "💡" },
 ];
 
-// Flat list used in the mobile menu — all links in one place
+// Flat ordered list for the mobile menu
 const mobileLinks: Array<{ href: string; label: string; emoji?: string }> = [
-  { href: "/", label: "Home" },
-  { href: "/dashboard", label: "Business Dashboard" },
-  { href: "/submit-review", label: "Submit Review" },
-  { href: "/profile", label: "Consumer Profile", emoji: "👤" },
-  { href: "/rewards", label: "Rewards", emoji: "🏆" },
-  { href: "/how-it-works", label: "How It Works", emoji: "💡" },
-  { href: "/about", label: "About" },
+  { href: "/",             label: "Home" },
+  { href: "/dashboard",   label: "Business Dashboard" },
+  { href: "/review",      label: "Submit Review" },
+  { href: "/profile",     label: "Consumer Profile",  emoji: "👤" },
+  { href: "/rewards",     label: "Rewards",            emoji: "🏆" },
+  { href: "/how-it-works", label: "How It Works",     emoji: "💡" },
+  { href: "/about",       label: "About" },
 ];
 
 const consumerHrefs = consumerLinks.map((l) => l.href);
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);   // mobile hamburger
-  const [dropOpen, setDropOpen] = useState(false);   // desktop consumer dropdown
-
+  const [menuOpen, setMenuOpen]   = useState(false); // mobile drawer
+  const [dropOpen, setDropOpen]   = useState(false); // desktop consumer dropdown
   const dropRef = useRef<HTMLDivElement>(null);
+
   const isConsumerActive = consumerHrefs.includes(pathname);
 
-  // Close desktop dropdown when clicking outside
+  // Close desktop dropdown on outside click
   useEffect(() => {
-    function handleOutsideClick(e: MouseEvent) {
+    function onOutsideClick(e: MouseEvent) {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
         setDropOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => document.removeEventListener("mousedown", onOutsideClick);
   }, []);
 
-  // Close everything when route changes
+  // Auto-close mobile menu whenever the route actually changes
   useEffect(() => {
     setMenuOpen(false);
     setDropOpen(false);
   }, [pathname]);
 
-  function closeAll() {
-    setMenuOpen(false);
-    setDropOpen(false);
-  }
-
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 bg-[#020810]/95 backdrop-blur-xl border-b border-blue-950/60">
 
-      {/* ── Top bar ─────────────────────────────────────────────────────── */}
+      {/* ── Top bar ────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
 
           {/* Logo */}
           <Link
             href="/"
-            onClick={closeAll}
+            onClick={() => setMenuOpen(false)}
             className="flex shrink-0 items-center gap-2.5"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 shadow-lg shadow-blue-600/30">
@@ -86,7 +81,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav — hidden below md ───────────────────────────── */}
+          {/* Desktop links — hidden below md ───────────────────────────── */}
           <div className="hidden md:flex items-center gap-1">
 
             {businessLinks.map((link) => (
@@ -116,10 +111,7 @@ export default function Navbar() {
                 For Consumers
                 <svg
                   className={`h-3.5 w-3.5 transition-transform duration-200 ${dropOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -158,29 +150,29 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right side: CTA (always) + hamburger (mobile only) ──────── */}
+          {/* Right: CTA always visible + hamburger on mobile only ──────── */}
           <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/dashboard"
+              onClick={() => setMenuOpen(false)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 hover:shadow-blue-500/30"
             >
               For Businesses
             </Link>
 
-            {/* Hamburger — flex on mobile, hidden on md+ */}
+            {/* Hamburger — visible only below md */}
             <button
-              onClick={() => setMenuOpen((o) => !o)}
+              type="button"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((o) => !o)}
               className="flex md:hidden h-10 w-10 items-center justify-center rounded-lg border border-blue-900/50 bg-blue-950/40 text-slate-300 transition-colors hover:bg-blue-900/40 hover:text-white"
             >
               {menuOpen ? (
-                /* X */
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                /* ☰ */
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -191,38 +183,41 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Mobile menu — rendered only when open, hidden on md+ ──────── */}
+      {/* ── Mobile drawer — each link closes menu before navigating ─────── */}
       {menuOpen && (
-        <div className="md:hidden border-t border-blue-950/60 bg-[#020810] pb-4">
-          <div className="mx-auto max-w-7xl px-4 pt-2 flex flex-col">
+        <div className="md:hidden border-t border-blue-950/60 bg-[#020810]">
+          <div className="mx-auto max-w-7xl px-4 py-2 flex flex-col gap-0.5">
+
             {mobileLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={closeAll}
-                className={`flex items-center gap-3 rounded-lg px-4 py-3.5 text-[15px] font-medium transition-all ${
+                onClick={() => setMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-4 py-3.5 text-[15px] font-medium transition-all active:scale-[0.98] ${
                   pathname === link.href
                     ? "text-blue-300 bg-blue-600/15"
                     : "text-slate-300 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 {link.emoji && (
-                  <span className="text-base leading-none">{link.emoji}</span>
+                  <span className="w-5 text-center text-base leading-none">
+                    {link.emoji}
+                  </span>
                 )}
                 {link.label}
               </Link>
             ))}
 
-            {/* Mobile CTA */}
-            <div className="mt-3 px-0">
+            <div className="py-3">
               <Link
                 href="/dashboard"
-                onClick={closeAll}
-                className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500"
+                onClick={() => setMenuOpen(false)}
+                className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 active:scale-[0.98]"
               >
                 For Businesses →
               </Link>
             </div>
+
           </div>
         </div>
       )}
