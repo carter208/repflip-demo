@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 
 const CONSUMER = { name: "Marcus Thompson", points: 4820, tier: "Platinum" as const };
 
@@ -50,14 +49,18 @@ function useCountdown(target: Date): TimeLeft {
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 
+// Stable reference outside component — avoids infinite useEffect loop
+// (a new Date() inside the component would change reference on every render,
+//  triggering useCountdown's [target] dependency infinitely)
+const DRAW_END = new Date("2026-05-01T00:00:00Z");
+
 export default function RewardsPage() {
   const [entries, setEntries] = useState(3);
   const [points, setPoints] = useState(CONSUMER.points);
   const [entering, setEntering] = useState(false);
   const [redeemed, setRedeemed] = useState<Set<string>>(new Set());
 
-  const drawEnd = new Date("2026-05-01T00:00:00Z");
-  const countdown = useCountdown(drawEnd);
+  const countdown = useCountdown(DRAW_END);
 
   const enterDraw = () => {
     if (points < 500 || entering) return;
@@ -75,19 +78,18 @@ export default function RewardsPage() {
 
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
       <div className="mx-auto max-w-4xl px-6 pb-24 pt-32">
 
-        {/* Back nav */}
-        <div className="mb-6">
+        {/* ── Prominent Home back button ── */}
+        <div className="mb-8">
           <Link
-            href="/profile"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 transition-colors hover:text-blue-300"
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl border border-blue-700/40 bg-blue-950/50 px-5 py-2.5 text-sm font-semibold text-blue-300 shadow-lg shadow-blue-900/20 transition-all hover:border-blue-500/60 hover:bg-blue-900/50 hover:text-white"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Consumer Profile
+            Home
           </Link>
         </div>
 

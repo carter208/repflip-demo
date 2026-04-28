@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import Navbar from "@/components/Navbar";
 import { CONSUMERS, TIER_CONFIG, type Consumer, type Tier } from "@/lib/data";
 
 // Points breakdown data (100 pts = $1)
@@ -104,7 +103,6 @@ function ProfileContent() {
 
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
       <div className="mx-auto max-w-5xl px-6 pb-16 pt-28">
 
         {/* Consumer Selector */}

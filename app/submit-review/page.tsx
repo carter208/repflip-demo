@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import { BEHAVIORAL_TAGS, CONSUMERS } from "@/lib/data";
 
 export default function SubmitReviewPage() {
@@ -40,7 +39,6 @@ export default function SubmitReviewPage() {
   if (submitted && consumer) {
     return (
       <div className="min-h-screen bg-[#020810]">
-        <Navbar />
         <div className="flex min-h-screen items-center justify-center px-6 pt-16">
           <div className="glass-card w-full max-w-md overflow-hidden rounded-3xl p-10 text-center shadow-2xl">
             <div className="mb-4 flex justify-center">
@@ -103,7 +101,6 @@ export default function SubmitReviewPage() {
 
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
       <div className="mx-auto max-w-2xl px-6 pb-16 pt-28">
         {/* Header */}
         <div className="mb-8">

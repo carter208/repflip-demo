@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import { CONSUMERS, TIER_CONFIG, type Consumer } from "@/lib/data";
 // TIER_CONFIG used for header glow and tier badge styling
 
@@ -263,7 +262,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
       <div className="mx-auto max-w-4xl px-6 pt-28 pb-16">
         {/* Header */}
         <div className="mb-8">

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
 
 const FEATURES_BUSINESS = [
   {
@@ -53,8 +52,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
-
       {/* Hero */}
       <section className="relative overflow-hidden pt-24">
         <div className="hero-grid absolute inset-0 opacity-60" />

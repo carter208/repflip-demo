@@ -1,10 +1,6 @@
-import Navbar from "@/components/Navbar";
-
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
-
       <div className="mx-auto max-w-3xl px-6 pb-24 pt-32">
         {/* Label */}
         <div className="mb-4 flex items-center gap-2">

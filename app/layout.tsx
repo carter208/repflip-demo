@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "Repflip — Know Who You're Working With",
@@ -21,7 +22,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-[#020810] antialiased">{children}</body>
+      <body className="min-h-screen bg-[#020810] antialiased">
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

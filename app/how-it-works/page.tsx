@@ -1,10 +1,8 @@
-import Navbar from "@/components/Navbar";
 import Link from "next/link";
 
 export default function HowItWorksPage() {
   return (
     <div className="min-h-screen bg-[#020810]">
-      <Navbar />
       <div className="mx-auto max-w-4xl px-6 pb-24 pt-32">
 
         {/* Label */}
