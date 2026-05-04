@@ -186,12 +186,12 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
             <div key={review.id} className="flex items-start gap-3 rounded-xl border border-blue-900/30 bg-blue-950/20 p-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-white truncate">{review.businessName}</span>
+                  <span className="text-sm font-semibold text-white truncate">{review.businessType}</span>
                   <span className="text-xs text-slate-600 shrink-0">{review.date}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <StarRow rating={review.rating} />
-                  <span className="text-xs text-slate-500">{review.businessType}</span>
+                  <span className="text-xs text-slate-500">Verified review</span>
                 </div>
                 {review.notes && (
                   <p className="mt-1.5 text-xs leading-relaxed text-slate-400 line-clamp-2">{review.notes}</p>
@@ -247,7 +247,7 @@ export default function DashboardPage() {
       return;
     }
     const found = CONSUMERS.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.phone.includes(q)
+      (c) => c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.email.toLowerCase().includes(q)
     );
     setResults(found);
     setSearched(true);

@@ -59,6 +59,37 @@ export default function AboutPage() {
               the entire service economy.
             </p>
 
+            {/* How Your Data Is Protected */}
+            <div className="mt-2 rounded-2xl border border-blue-900/40 bg-blue-950/20 p-6">
+              <div className="mb-4 flex items-center gap-2">
+                <span className="text-lg">🔒</span>
+                <span className="text-base font-black text-white">How Your Data Is Protected</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-3">
+                  <span className="mt-0.5 text-base">🚫</span>
+                  <div>
+                    <p className="text-sm font-bold text-white">Your score is never public.</p>
+                    <p className="text-sm text-slate-400">Your Repflip score is private by default and is never displayed publicly or shared with anyone outside of verified participating businesses.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="mt-0.5 text-base">✅</span>
+                  <div>
+                    <p className="text-sm font-bold text-white">Only verified paying businesses can view your score.</p>
+                    <p className="text-sm text-slate-400">Access is restricted to vetted businesses on the Repflip platform. Random individuals, third-party services, and unverified companies cannot look you up.</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="mt-0.5 text-base">🕶️</span>
+                  <div>
+                    <p className="text-sm font-bold text-white">Business names are never revealed.</p>
+                    <p className="text-sm text-slate-400">You will never know which specific company left a review. Only the trade category is shown — e.g. &ldquo;Plumbing Service.&rdquo; Every review is fully anonymous.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Signature */}
             <div className="mt-4 border-t border-blue-900/40 pt-8">
               <p className="mb-6 text-base italic text-slate-500">— Carter Baker, Founder</p>
