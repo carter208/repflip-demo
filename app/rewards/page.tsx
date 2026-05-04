@@ -59,6 +59,7 @@ export default function RewardsPage() {
   const [points, setPoints] = useState(CONSUMER.points);
   const [entering, setEntering] = useState(false);
   const [redeemed, setRedeemed] = useState<Set<string>>(new Set());
+  const [redeemedHistory, setRedeemedHistory] = useState<{ name: string; pts: number; emoji: string; date: string }[]>([]);
 
   const countdown = useCountdown(DRAW_END);
 
@@ -68,10 +69,13 @@ export default function RewardsPage() {
     setTimeout(() => { setEntries((e) => e + 1); setPoints((p) => p - 500); setEntering(false); }, 800);
   };
 
-  const redeemOffer = (name: string, cost: number) => {
+  const redeemOffer = (name: string, cost: number, emoji: string) => {
     if (points < cost || redeemed.has(name)) return;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     setPoints((p) => p - cost);
     setRedeemed((prev) => new Set([...Array.from(prev), name]));
+    setRedeemedHistory((prev) => [{ name, pts: cost, emoji, date: dateStr }, ...prev]);
   };
 
   const dollarValue = (pts: number) => `$${(pts / 100).toFixed(2)}`;
@@ -223,7 +227,7 @@ export default function RewardsPage() {
                       </span>
                     ) : (
                       <button
-                        onClick={() => redeemOffer(offer.name, offer.pts)}
+                        onClick={() => redeemOffer(offer.name, offer.pts, offer.emoji)}
                         disabled={!canAfford}
                         className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
                       >
@@ -236,6 +240,40 @@ export default function RewardsPage() {
             })}
           </div>
         </section>
+
+        {/* ── Redeemed Rewards History ── */}
+        {redeemedHistory.length > 0 && (
+          <section className="mb-8">
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-400">
+              ✓ Redeemed
+            </p>
+            <div className="flex flex-col gap-3">
+              {redeemedHistory.map((item, i) => (
+                <div
+                  key={i}
+                  className="glass-card flex items-center gap-4 rounded-2xl px-5 py-4"
+                >
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-emerald-900/40 bg-emerald-950/40 text-2xl">
+                    {item.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm font-bold text-white">{item.name}</p>
+                    <p className="text-xs text-slate-500">Redeemed on {item.date}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-black text-emerald-400">−{item.pts.toLocaleString()} pts</p>
+                    <p className="text-xs text-slate-600">{dollarValue(item.pts)} value</p>
+                  </div>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-700/40 bg-emerald-950/50">
+                    <svg className="h-3.5 w-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Gift Cards ── */}
         <section>

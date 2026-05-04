@@ -74,6 +74,7 @@ function ProfileContent() {
   const [claimed, setClaimed] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "positive" | "concerns">("all");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const handleClaim = () => {
     setClaiming(true);
@@ -93,6 +94,9 @@ function ProfileContent() {
     consumer.reviews.length > 0
       ? consumer.reviews.reduce((a, r) => a + r.rating, 0) / consumer.reviews.length
       : 0;
+
+  const yearReviews = consumer.reviews.filter((r) => r.date.includes("2026"));
+  const dollarValue = `$${(consumer.points / 100).toFixed(2)}`;
 
   const filteredReviews =
     activeTab === "positive"
@@ -158,6 +162,38 @@ function ProfileContent() {
                 </div>
               </div>
 
+              {/* ── Points Hero (most prominent number) ── */}
+              <div
+                className="mb-5 rounded-2xl border p-4 text-center relative overflow-hidden"
+                style={{ backgroundColor: `${cfg.color}10`, borderColor: `${cfg.color}30` }}
+              >
+                <div className="absolute inset-0 opacity-5 blur-2xl pointer-events-none" style={{ background: cfg.color }} />
+                <div className="relative">
+                  <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-slate-500">Points Balance</p>
+                  <div className="flex items-baseline justify-center gap-2 flex-wrap">
+                    <span className="text-4xl font-black text-white leading-none">{consumer.points.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-slate-400">pts</span>
+                  </div>
+                  <div
+                    className="mt-1 inline-block rounded-full px-3 py-0.5 text-sm font-bold"
+                    style={{ color: cfg.color, backgroundColor: `${cfg.color}20` }}
+                  >
+                    = {dollarValue}
+                  </div>
+                  <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-blue-950/80">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min((consumer.points / 5000) * 100, 100)}%`,
+                        background: `linear-gradient(90deg, ${cfg.color}80, ${cfg.color})`,
+                        boxShadow: `0 0 8px ${cfg.color}60`,
+                      }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-600">100 pts = $1.00 · Points never expire</p>
+                </div>
+              </div>
+
               {/* Score Ring */}
               <div className="relative mb-5 flex justify-center score-ring rounded-full">
                 <ScoreCircle score={consumer.score} tier={consumer.tier} />
@@ -165,7 +201,7 @@ function ProfileContent() {
 
               {/* Tier Badge */}
               <div
-                className="mb-4 flex items-center justify-center gap-2 rounded-xl border py-2.5"
+                className="mb-3 flex items-center justify-center gap-2 rounded-xl border py-2.5"
                 style={{ backgroundColor: `${cfg.color}12`, borderColor: `${cfg.color}30` }}
               >
                 <div
@@ -179,45 +215,45 @@ function ProfileContent() {
                 </span>
               </div>
 
-              {/* Tier Progress */}
-              <div className="mb-4">
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                    {tierProgress.nextTier ? `Progress to ${tierProgress.nextTier}` : "Max Tier Reached 🎉"}
-                  </span>
-                  {tierProgress.nextTier && (
-                    <span className="text-xs font-semibold" style={{ color: nextCfg?.color }}>
-                      {tierProgress.pointsToNext} pts to go
-                    </span>
-                  )}
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-blue-950/60">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${Math.min(tierProgress.pct, 100)}%`,
-                      background: `linear-gradient(90deg, ${cfg.color}99, ${cfg.color})`,
-                      boxShadow: `0 0 8px ${cfg.color}60`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Points + $ Value */}
-              <div className="mb-4 rounded-xl border border-blue-900/40 bg-blue-950/30 p-4">
-                <div className="mb-1 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Points Balance</span>
-                  <span className="text-xs font-bold text-emerald-400">
-                    ${(consumer.points / 100).toFixed(2)} value
-                  </span>
-                </div>
-                <div className="text-2xl font-black text-white">{consumer.points.toLocaleString()} pts</div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-blue-950">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
-                    style={{ width: `${Math.min((consumer.points / 5000) * 100, 100)}%`, boxShadow: "0 0 6px rgba(37,99,235,0.5)" }}
-                  />
-                </div>
+              {/* Tier Progress — enhanced */}
+              <div className="mb-4 rounded-xl border border-blue-900/40 bg-blue-950/20 p-3">
+                {tierProgress.nextTier ? (
+                  <>
+                    <p className="mb-2 text-xs leading-relaxed text-slate-400">
+                      You need{" "}
+                      <span className="font-bold" style={{ color: nextCfg?.color }}>
+                        {tierProgress.pointsToNext} more points
+                      </span>{" "}
+                      to reach{" "}
+                      <span className="font-bold" style={{ color: nextCfg?.color }}>
+                        {tierProgress.nextTier}
+                      </span>{" "}
+                      tier.
+                    </p>
+                    <div className="mb-1.5 flex justify-between text-xs">
+                      <span className="font-semibold" style={{ color: cfg.color }}>{consumer.tier}</span>
+                      <span className="font-semibold" style={{ color: nextCfg?.color }}>{tierProgress.nextTier}</span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-blue-950/60">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${Math.min(tierProgress.pct, 100)}%`,
+                          background: `linear-gradient(90deg, ${cfg.color}99, ${cfg.color})`,
+                          boxShadow: `0 0 8px ${cfg.color}60`,
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-right text-xs font-semibold" style={{ color: nextCfg?.color }}>
+                      {Math.round(tierProgress.pct)}% there
+                    </p>
+                  </>
+                ) : (
+                  <div className="text-center py-1">
+                    <p className="text-sm font-bold" style={{ color: cfg.color }}>Max Tier Reached 🎉</p>
+                    <p className="mt-0.5 text-xs text-slate-500">You&apos;re at the top. Keep it up.</p>
+                  </div>
+                )}
               </div>
 
               {/* Stats */}
@@ -279,6 +315,102 @@ function ProfileContent() {
 
           {/* ── Right Column ── */}
           <div className="lg:col-span-2 flex flex-col gap-5">
+
+            {/* Welcome Banner (dismissible) */}
+            {!bannerDismissed && (
+              <div className="relative overflow-hidden rounded-2xl border border-blue-700/40 bg-gradient-to-br from-blue-950/80 to-cyan-950/40 p-5">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,rgba(37,99,235,0.18),transparent_60%)] pointer-events-none" />
+                <div className="relative">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">👋</span>
+                      <span className="text-sm font-black text-white">Welcome to your Repflip profile</span>
+                    </div>
+                    <button
+                      onClick={() => setBannerDismissed(true)}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border border-blue-800/40 bg-blue-950/60 text-slate-500 hover:text-white transition-colors text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { step: "1", emoji: "⭐", title: "Your score", desc: "0–100 reputation score built from every review you receive." },
+                      { step: "2", emoji: "🪙", title: "Earn points", desc: "Every positive review earns points. 100 pts = $1 real value." },
+                      { step: "3", emoji: "🎁", title: "Redeem rewards", desc: "Spend points on gift cards, discounts, and monthly cash draws." },
+                    ].map((s) => (
+                      <div key={s.step} className="rounded-xl border border-blue-900/40 bg-blue-950/40 p-3 text-center">
+                        <div className="mb-1.5 text-xl">{s.emoji}</div>
+                        <div className="mb-0.5 text-xs font-black text-white">Step {s.step} — {s.title}</div>
+                        <div className="text-xs leading-relaxed text-slate-500">{s.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setBannerDismissed(true)}
+                    className="mt-3 w-full rounded-xl border border-blue-700/40 bg-blue-900/30 py-2 text-xs font-semibold text-blue-300 hover:text-white transition-colors"
+                  >
+                    Got it — dismiss
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Your Year So Far */}
+            <div className="glass-card overflow-hidden rounded-2xl">
+              <div className="border-b border-blue-900/30 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📅</span>
+                    <h2 className="text-base font-black text-white">Your Year So Far</h2>
+                    <span className="rounded-full border border-blue-800/40 bg-blue-950/40 px-2 py-0.5 text-xs font-semibold text-slate-400">2026</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-0 sm:grid-cols-4">
+                {[
+                  {
+                    value: yearReviews.length,
+                    label: "Reviews received",
+                    color: "text-blue-400",
+                    sub: `of ${consumer.reviews.length} total`,
+                  },
+                  {
+                    value: breakdown.earned.toLocaleString(),
+                    label: "Points earned",
+                    color: "text-emerald-400",
+                    sub: "lifetime total",
+                  },
+                  {
+                    value: dollarValue,
+                    label: "Balance value",
+                    color: "text-yellow-400",
+                    sub: `${consumer.points.toLocaleString()} pts`,
+                  },
+                  {
+                    value: consumer.tier,
+                    label: "Current tier",
+                    color: "",
+                    sub: `score ${consumer.score}/100`,
+                    style: { color: cfg.color },
+                  },
+                ].map((stat, i) => (
+                  <div
+                    key={stat.label}
+                    className={`flex flex-col items-center justify-center gap-0.5 p-4 text-center ${i < 3 ? "border-b sm:border-b-0 sm:border-r border-blue-900/30" : ""}`}
+                  >
+                    <div
+                      className={`text-2xl font-black leading-none ${stat.color}`}
+                      style={stat.style}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="mt-1 text-xs font-semibold text-white">{stat.label}</div>
+                    <div className="text-xs text-slate-600">{stat.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Review History */}
             <div className="glass-card rounded-2xl p-6">
