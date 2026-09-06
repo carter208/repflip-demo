@@ -15,9 +15,9 @@ const POINTS_BREAKDOWN: Record<string, { earned: number; spent: number }> = {
 };
 
 const TIPS = [
-  { emoji: "⏰", title: "Show up on time", desc: "Being present and ready earns the highest-trust tag. Consistency builds your score fastest." },
-  { emoji: "💳", title: "Pay without disputes", desc: '"Paid immediately" is the top-weighted positive tag. Prompt payment boosts every review.' },
-  { emoji: "💬", title: "Communicate proactively", desc: "Send a heads-up if plans change. Easy to communicate reviews lift scores across all providers." },
+  { emoji: "⏰", title: "Be reliable", desc: "Being present and ready earns the highest-trust tag. Consistency builds your score fastest." },
+  { emoji: "💳", title: "Pay without disputes", desc: '"Paid on time" is the top-weighted positive tag. Prompt payment boosts every review.' },
+  { emoji: "💬", title: "Communicate proactively", desc: "Send a heads-up if plans change. Clear communicator reviews lift scores across every business." },
 ];
 
 function getTierProgress(score: number, tier: Tier) {
@@ -82,7 +82,7 @@ function ProfileContent() {
   };
 
   const allTags = consumer.reviews.flatMap((r) => r.tags);
-  const negativeSet = new Set(["No-show", "Disputed payment", "Aggressive", "Scope creep"]);
+  const negativeSet = new Set(["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"]);
   const positiveTagCounts: Record<string, number> = {};
   const negativeTagCounts: Record<string, number> = {};
   allTags.forEach((t) => {
@@ -518,7 +518,7 @@ function ProfileContent() {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-white">Business names are never revealed</div>
-                    <div className="mt-0.5 text-xs leading-relaxed text-slate-400">You will never know which specific company reviewed you — only the trade category (e.g. "Plumbing Service") is shown. Reviews are always anonymous.</div>
+                    <div className="mt-0.5 text-xs leading-relaxed text-slate-400">You will never know which specific company reviewed you — only the business category (e.g. "Personal Training") is shown. Reviews are always anonymous.</div>
                   </div>
                 </div>
               </div>

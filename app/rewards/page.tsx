@@ -12,12 +12,12 @@ const PAST_WINNERS = [
 ];
 
 const PARTNER_OFFERS = [
-  { name: "ProClean Services", type: "House Cleaning", offer: "$25 off your next cleaning", pts: 250, emoji: "🧹" },
-  { name: "Elite HVAC Solutions", type: "HVAC Repair", offer: "Free diagnostic ($89 value)", pts: 500, emoji: "❄️" },
-  { name: "Greenfield Landscaping", type: "Landscaping", offer: "10% off any project", pts: 300, emoji: "🌿" },
-  { name: "Apex Plumbing", type: "Plumbing", offer: "$30 off service call", pts: 300, emoji: "🔧" },
-  { name: "SunBright Solar", type: "Solar", offer: "Free consult + $50 credit", pts: 400, emoji: "☀️" },
-  { name: "FreshCoat Painters", type: "Painting", offer: "Free color consultation", pts: 150, emoji: "🎨" },
+  { name: "Meridian & Co.", type: "Boutique Retail", offer: "$25 off your next purchase", pts: 250, emoji: "🛍️" },
+  { name: "Sunset Ridge Apartments", type: "Property Management", offer: "$50 credit toward next month's rent", pts: 500, emoji: "🏠" },
+  { name: "Ready Set Fit", type: "Personal Training", offer: "Free training session ($75 value)", pts: 400, emoji: "💪" },
+  { name: "Bloom Crate Co.", type: "Subscription Box", offer: "Free box upgrade", pts: 300, emoji: "📦" },
+  { name: "Aperture Studio", type: "Photography", offer: "Free print package", pts: 200, emoji: "📸" },
+  { name: "Golden Spoon Catering", type: "Event Catering", offer: "10% off your next event", pts: 350, emoji: "🍽️" },
 ];
 
 const GIFT_CARDS = [

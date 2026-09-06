@@ -26,7 +26,7 @@ const LIGHTS = [
 ];
 
 const SIGNAL_TEXT: Record<Signal, { headline: string; subline: string; cls: string }> = {
-  green:  { headline: "Green Light — Trusted Customer.",        subline: "Take the job.",               cls: "text-emerald-400" },
+  green:  { headline: "Green Light — Trusted Customer.",        subline: "Move forward.",               cls: "text-emerald-400" },
   yellow: { headline: "Yellow Light — Proceed with Caution.",   subline: "Review the details.",         cls: "text-yellow-400"  },
   red:    { headline: "Red Light — High Risk.",                  subline: "Charge more or decline.",     cls: "text-red-400"     },
   grey:   { headline: "No Reviews Yet",                          subline: "You would be their first.",   cls: "text-slate-400"   },
@@ -83,10 +83,10 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
   const hasReviews = consumer.reviews.length > 0;
   const positiveTags = consumer.reviews
     .flatMap((r) => r.tags)
-    .filter((t) => !["No-show", "Disputed payment", "Aggressive", "Scope creep"].includes(t));
+    .filter((t) => !["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"].includes(t));
   const negativeTags = consumer.reviews
     .flatMap((r) => r.tags)
-    .filter((t) => ["No-show", "Disputed payment", "Aggressive", "Scope creep"].includes(t));
+    .filter((t) => ["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"].includes(t));
   const uniquePos = Array.from(new Set(positiveTags));
   const uniqueNeg = Array.from(new Set(negativeTags));
 
@@ -198,7 +198,7 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
                 )}
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {review.tags.map((tag) => {
-                    const isNeg = ["No-show", "Disputed payment", "Aggressive", "Scope creep"].includes(tag);
+                    const isNeg = ["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"].includes(tag);
                     return (
                       <span key={tag} className={`rounded-full px-2 py-0.5 text-[10px] font-medium border ${isNeg ? "bg-red-950/40 text-red-400 border-red-800/30" : "bg-emerald-950/40 text-emerald-400 border-emerald-800/30"}`}>
                         {tag}
@@ -270,7 +270,7 @@ export default function DashboardPage() {
             <span className="text-xs font-semibold uppercase tracking-widest text-blue-400">Business Dashboard</span>
           </div>
           <h1 className="text-4xl font-black text-white md:text-5xl">Consumer Lookup</h1>
-          <p className="mt-2 text-slate-400">Search any consumer before you accept their booking.</p>
+          <p className="mt-2 text-slate-400">Search any consumer before you do business with them.</p>
         </div>
 
         {/* Search */}

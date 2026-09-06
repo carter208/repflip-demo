@@ -18,11 +18,11 @@ export default function AboutPage() {
         <div className="glass-card rounded-2xl p-8 md:p-14">
           <div className="flex flex-col gap-6 text-base leading-[1.9] text-slate-400 md:text-lg">
             <p>
-              We&apos;ve run a service business in the Treasure Valley for years. Like every
-              contractor, we&apos;ve had our share of difficult jobs. But one customer stands out.
-              Terrible communication. Constant scope creep. Multiple threats of legal action. Work
-              that was never good enough no matter how many times it was redone. Hours of time,
-              energy, and money poured into a relationship that should never have started.
+              We&apos;ve run small businesses in the Treasure Valley for years. Like every owner,
+              we&apos;ve had our share of difficult customers. But one stands out. Terrible
+              communication. Constant excuses. Multiple threats of chargebacks and legal action.
+              Commitments that were never honored no matter how many times we followed up. Hours of
+              time, energy, and money poured into a relationship that should never have started.
             </p>
 
             <p>
@@ -30,9 +30,9 @@ export default function AboutPage() {
             </p>
 
             <p>
-              No system existed to warn us before we took the job. No way to tell the next
-              plumber, electrician, or landscaper who called that customer what they were walking
-              into. The business absorbed all the risk. The customer faced none of the consequences.
+              No system existed to warn us before we said yes. No way to tell the next landlord,
+              retailer, or trainer who took the call what they were walking into. The business
+              absorbed all the risk. The customer faced none of the consequences.
             </p>
 
             <p className="text-lg font-semibold text-white md:text-xl">
@@ -41,10 +41,10 @@ export default function AboutPage() {
 
             <p>
               The idea is simple: businesses rate customers the same way customers rate businesses.
-              Consumers build a reputation score that follows them across every service provider they
-              work with. Good behavior gets rewarded with points, prizes, and priority access to the
-              best businesses in town. And businesses finally get what they&apos;ve always deserved —
-              a clear signal before they commit.
+              Consumers build a reputation score that follows them across every business they
+              work with — no matter the industry. Good behavior gets rewarded with points, prizes,
+              and priority access to the best businesses in town. And businesses finally get what
+              they&apos;ve always deserved — a clear signal before they commit.
             </p>
 
             <p>
@@ -56,7 +56,7 @@ export default function AboutPage() {
 
             <p className="text-lg font-semibold text-white md:text-xl">
               This isn&apos;t just a software company. It&apos;s the beginning of a trust layer for
-              the entire service economy.
+              every kind of business.
             </p>
           </div>
         </div>

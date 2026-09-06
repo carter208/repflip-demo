@@ -17,8 +17,8 @@ export default function HowItWorksPage() {
           <span className="gradient-text">Your rewards.</span>
         </h1>
         <p className="mb-16 max-w-xl text-lg leading-relaxed text-slate-400">
-          Repflip rewards the consumers who show up, pay on time, and treat service workers with
-          respect. Here&apos;s how it works.
+          Repflip rewards the consumers who show up, pay on time, and treat the people they do
+          business with respect. Here&apos;s how it works.
         </p>
 
         {/* Steps */}
@@ -39,12 +39,12 @@ export default function HowItWorksPage() {
                 </div>
                 <h2 className="mb-2 text-2xl font-black text-white">Get reviewed</h2>
                 <p className="leading-relaxed text-slate-400">
-                  After each service appointment, the business rates you. They leave behavioral tags —
+                  After each interaction, the business rates you. They leave behavioral tags —
                   the same way you&apos;d rate them on Yelp, but flipped. Your tags build your
-                  reputation across every provider you work with.
+                  reputation across every business you work with.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {["Showed up on time", "Paid immediately", "Easy to communicate", "Respectful"].map(
+                  {["Reliable", "Paid on time", "Clear communicator", "Respectful"].map(
                     (tag) => (
                       <span
                         key={tag}
@@ -80,7 +80,7 @@ export default function HowItWorksPage() {
                 <h2 className="mb-2 text-2xl font-black text-white">Build your score</h2>
                 <p className="leading-relaxed text-slate-400">
                   Every positive review lifts your Repflip score — a number from 0 to 100 that reflects your
-                  reputation across every service provider you&apos;ve worked with. Higher score means better
+                  reputation across every business you&apos;ve worked with. Higher score means better
                   tier, more perks, and priority access to top businesses.
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

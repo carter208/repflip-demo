@@ -3,10 +3,10 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Repflip — Know Who You're Working With",
+  title: "Repflip — Know Who You're Dealing With",
   description:
-    "The two-sided reputation platform for service businesses and consumers. Build trust before the job starts.",
-  keywords: ["reputation", "service business", "consumer score", "trust platform"],
+    "The two-sided reputation platform for businesses and consumers. Build trust before you say yes.",
+  keywords: ["reputation", "business", "consumer score", "trust platform"],
 };
 
 export default function RootLayout({

@@ -110,7 +110,7 @@ export default function SubmitReviewPage() {
             </Link>
           </div>
           <h1 className="text-4xl font-black text-white md:text-5xl">Submit Review</h1>
-          <p className="mt-2 text-slate-400">Your feedback shapes the trust economy for every service business.</p>
+          <p className="mt-2 text-slate-400">Your feedback shapes the trust economy for every business.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

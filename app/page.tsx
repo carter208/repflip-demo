@@ -7,12 +7,12 @@ const FEATURES_BUSINESS = [
   {
     icon: "🔍",
     title: "Instant Lookup",
-    desc: "Search any customer by name or phone before booking. See their score, tier, and history in seconds.",
+    desc: "Search any customer by name or phone before you say yes. See their score, tier, and history in seconds.",
   },
   {
     icon: "⭐",
     title: "Submit Reviews",
-    desc: "Rate clients with behavioral tags after every job. Your feedback shapes the platform for all service pros.",
+    desc: "Rate customers with behavioral tags after every interaction. Your feedback shapes the platform for every business.",
   },
   {
     icon: "🛡️",
@@ -25,7 +25,7 @@ const FEATURES_CONSUMER = [
   {
     icon: "📈",
     title: "Build Your Score",
-    desc: "Every good interaction adds to your reputation score. Prove you're a great client across all service providers.",
+    desc: "Every good interaction adds to your reputation score. Prove you're a great customer across every business you work with.",
   },
   {
     icon: "🏅",
@@ -65,14 +65,14 @@ export default function LandingPage() {
           </div>
 
           <h1 className="mb-6 text-5xl font-black leading-tight tracking-tight text-white md:text-7xl">
-            Know who you&apos;re working
+            Know who you&apos;re dealing
             <br />
-            <span className="gradient-text">with before the job starts.</span>
+            <span className="gradient-text">with before you say yes.</span>
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-400 md:text-xl">
-            Repflip is the two-sided reputation platform that lets service businesses rate their
-            customers — and rewards consumers who show up, pay on time, and treat workers with
+            Repflip is the two-sided reputation platform that lets any business rate their
+            customers — and rewards people who show up, pay on time, and treat others with
             respect.
           </p>
 
@@ -117,7 +117,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {["Paid immediately", "Respectful", "Easy to communicate"].map((tag) => (
+                {["Paid on time", "Respectful", "Clear communicator"].map((tag) => (
                   <span key={tag} className="rounded-full bg-emerald-950/50 px-2.5 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-800/40">
                     {tag}
                   </span>
@@ -138,11 +138,11 @@ export default function LandingPage() {
             Built for the people who show up.
           </h2>
           <p className="text-lg leading-relaxed text-slate-400 md:text-xl">
-            Repflip exists to create a fair service economy — where businesses can finally know who
-            they&apos;re working with, good customers are recognized and rewarded, and trust flows both
-            ways. We believe the people who show up on time, pay without argument, and treat workers
-            with respect deserve to be known. And the businesses who serve them deserve to know
-            before the job starts.
+            Repflip exists to create a fair economy of trust — where businesses of every kind can
+            finally know who they&apos;re dealing with, good customers are recognized and rewarded, and
+            trust flows both ways. We believe the people who show up, pay without argument, and
+            treat others with respect deserve to be known. And the businesses who serve them
+            deserve to know before they say yes.
           </p>
         </div>
       </section>
@@ -161,8 +161,8 @@ export default function LandingPage() {
             Stop taking on unknown risk
           </h2>
           <p className="mx-auto mb-14 max-w-xl text-center text-slate-400">
-            Every contractor, cleaner, plumber, and service pro deserves to know their client&apos;s
-            reputation before committing their time and resources.
+            Every business — from landlords to retailers to service providers — deserves to know
+            their customer&apos;s reputation before committing their time and resources.
           </p>
           <div className="grid gap-6 md:grid-cols-3">
             {FEATURES_BUSINESS.map((f) => (
@@ -191,7 +191,7 @@ export default function LandingPage() {
           </h2>
           <p className="mx-auto mb-16 max-w-xl text-center text-slate-400">
             Every consumer lookup returns a single signal. No guessing, no reading between the lines.
-            You know in seconds whether to take the job.
+            You know in seconds whether to move forward.
           </p>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -208,7 +208,7 @@ export default function LandingPage() {
                 />
                 <h3 className="mb-1 text-2xl font-black text-emerald-400">Green Light</h3>
                 <p className="mb-3 text-sm font-semibold text-emerald-600">Score 85+</p>
-                <p className="text-slate-400">Trusted customer. Take the job.</p>
+                <p className="text-slate-400">Trusted customer. Move forward.</p>
               </div>
             </div>
 
@@ -264,7 +264,7 @@ export default function LandingPage() {
           </h2>
           <p className="mx-auto mb-14 max-w-xl text-center text-slate-400">
             Your reputation follows you. Build a strong score and unlock exclusive perks from the
-            service providers you rely on.
+            businesses you rely on.
           </p>
           <div className="grid gap-6 md:grid-cols-3">
             {FEATURES_CONSUMER.map((f) => (
