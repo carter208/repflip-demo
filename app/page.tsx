@@ -5,41 +5,48 @@ import { useState } from "react";
 
 const FEATURES_BUSINESS = [
   {
-    icon: "🔍",
-    title: "Instant Lookup",
+    title: "Instant lookup",
     desc: "Search any customer by name or phone before you say yes. See their score, tier, and history in seconds.",
   },
   {
-    icon: "⭐",
-    title: "Submit Reviews",
+    title: "Submit reviews",
     desc: "Rate customers with behavioral tags after every interaction. Your feedback shapes the platform for every business.",
   },
   {
-    icon: "🛡️",
-    title: "Risk Protection",
+    title: "Risk protection",
     desc: "Decline high-risk customers before they cost you time, money, or headaches.",
   },
 ];
 
 const FEATURES_CONSUMER = [
   {
-    icon: "📈",
-    title: "Build Your Score",
+    title: "Build your score",
     desc: "Every good interaction adds to your reputation score. Prove you're a great customer across every business you work with.",
   },
   {
-    icon: "🏅",
-    title: "Earn Rewards",
+    title: "Earn rewards",
     desc: "Reach Gold and Platinum tiers to unlock exclusive discounts, priority booking, and partner perks.",
   },
   {
-    icon: "🔒",
-    title: "Own Your Profile",
+    title: "Own your profile",
     desc: "Claim your profile, dispute inaccurate reviews, and control your reputation narrative.",
   },
 ];
 
+const SIGNALS = [
+  { label: "Green light", range: "Score 85+", desc: "Trusted customer. Move forward.", color: "#8fa06a" },
+  { label: "Yellow light", range: "Score 65–84", desc: "Proceed with caution. Review their history.", color: "#d4a24e" },
+  { label: "Red light", range: "Score below 65", desc: "High risk. Charge more or pass.", color: "#b3564a" },
+];
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-3 flex items-center gap-2">
+      <div className="h-1.5 w-1.5 bg-gold" />
+      <span className="text-sm font-medium text-gold">{children}</span>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
@@ -51,93 +58,75 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020810]">
+    <div className="min-h-screen bg-plum">
       {/* Hero */}
-      <section className="relative overflow-hidden pt-24">
-        <div className="hero-grid absolute inset-0 opacity-60" />
-        <div className="absolute inset-0 bg-hero-glow" />
-        <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[120px]" />
-
-        <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-20 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-800/40 bg-blue-950/40 px-4 py-1.5 text-sm text-blue-300 backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-            Now in Private Beta
+      <section className="border-b border-hairline">
+        <div className="mx-auto max-w-6xl px-6 pb-20 pt-32">
+          <div className="mb-8 inline-flex items-center gap-2 border border-hairline px-3 py-1.5 text-sm text-ink-muted">
+            <span className="h-1.5 w-1.5 bg-gold animate-pulse" />
+            Now in private beta
           </div>
 
-          <h1 className="mb-6 text-5xl font-black leading-tight tracking-tight text-white md:text-7xl">
-            Know who you&apos;re dealing
-            <br />
-            <span className="gradient-text">with before you say yes.</span>
+          <h1 className="mb-6 max-w-3xl font-serif text-5xl font-semibold leading-tight text-ink md:text-6xl">
+            Know who you&apos;re dealing with before you say yes.
           </h1>
 
-          <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-400 md:text-xl">
+          <p className="mb-10 max-w-xl text-lg text-ink-muted">
             Repflip is the two-sided reputation platform that lets any business rate their
             customers — and rewards people who show up, pay on time, and treat others with
             respect.
           </p>
 
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mb-16 flex flex-col items-start gap-3 sm:flex-row">
             <Link
               href="/dashboard"
-              className="group flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:bg-blue-500 hover:shadow-blue-500/40 hover:scale-105"
+              className="rounded bg-gold px-8 py-3.5 text-base font-semibold text-plum transition-colors hover:bg-gold-deep"
             >
-              Get Started Free
-              <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              Get started free
             </Link>
             <Link
               href="/profile"
-              className="rounded-xl border border-blue-800/50 bg-blue-950/30 px-8 py-4 text-base font-semibold text-blue-300 backdrop-blur-sm transition-all hover:border-blue-600/60 hover:bg-blue-900/30 hover:text-white"
+              className="rounded border border-hairline px-8 py-3.5 text-base font-semibold text-ink transition-colors hover:border-gold hover:text-gold"
             >
-              Get Started
+              View a profile
             </Link>
           </div>
 
-          {/* Score preview card */}
-          <div className="mx-auto mt-16 max-w-sm">
-            <div className="glass-card relative overflow-hidden rounded-2xl p-6 shadow-2xl shadow-blue-900/30">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-600/10 blur-xl" />
-              <div className="mb-4 flex items-center justify-between">
-                <div className="text-left">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">Consumer Score</p>
-                  <p className="mt-0.5 text-sm font-medium text-slate-300">Marcus Thompson</p>
-                </div>
-                <span className="rounded-full border border-sky-400/40 bg-sky-900/30 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-300">
-                  Platinum
+          {/* Score preview — ledger-style ID card */}
+          <div className="max-w-sm border border-hairline bg-plum-raised p-6">
+            <div className="mb-5 flex items-center justify-between border-b border-hairline pb-4">
+              <div>
+                <p className="text-sm text-ink-muted">Consumer score</p>
+                <p className="mt-0.5 font-serif text-base font-semibold text-ink">Marcus Thompson</p>
+              </div>
+              <span className="font-serif text-sm font-semibold text-tier-platinum">Platinum</span>
+            </div>
+            <div className="mb-4 flex items-end gap-3">
+              <span className="font-serif text-7xl font-bold leading-none text-gold">94</span>
+              <span className="mb-1 text-sm text-ink-muted">out of 100</span>
+            </div>
+            <div className="mb-4 h-1 w-full bg-hairline">
+              <div className="h-full w-[94%] bg-gold" />
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {["Paid on time", "Respectful", "Clear communicator"].map((tag) => (
+                <span key={tag} className="border-l-2 border-sage pl-2 text-xs text-ink-muted">
+                  {tag}
                 </span>
-              </div>
-              <div className="flex items-end gap-3">
-                <span className="text-7xl font-black text-white">94</span>
-                <div className="mb-3 flex flex-col gap-1">
-                  <div className="h-1.5 w-32 overflow-hidden rounded-full bg-blue-950">
-                    <div className="h-full w-[94%] rounded-full bg-gradient-to-r from-blue-600 to-cyan-500" />
-                  </div>
-                  <p className="text-xs text-slate-500">out of 100</p>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {["Paid on time", "Respectful", "Clear communicator"].map((tag) => (
-                  <span key={tag} className="rounded-full bg-emerald-950/50 px-2.5 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-800/40">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Mission Statement */}
-      <section className="border-y border-blue-950/40 bg-[#040d21]/70 py-20">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <span className="mb-6 inline-block rounded-full border border-blue-800/40 bg-blue-950/30 px-3 py-1 text-xs font-bold uppercase tracking-widest text-blue-400">
-            Our Mission
-          </span>
-          <h2 className="mb-7 text-4xl font-black leading-tight tracking-tight gradient-text md:text-5xl">
+      <section className="border-b border-hairline bg-plum-raised py-20">
+        <div className="mx-auto max-w-3xl px-6">
+          <SectionLabel>Our mission</SectionLabel>
+          <h2 className="mb-7 font-serif text-4xl font-semibold leading-tight text-ink md:text-5xl">
             Built for the people who show up.
           </h2>
-          <p className="text-lg leading-relaxed text-slate-400 md:text-xl">
+          <p className="text-lg leading-relaxed text-ink-muted">
             Repflip exists to create a fair economy of trust — where businesses of every kind can
             finally know who they&apos;re dealing with, good customers are recognized and rewarded, and
             trust flows both ways. We believe the people who show up, pay without argument, and
@@ -148,28 +137,21 @@ export default function LandingPage() {
       </section>
 
       {/* For Businesses */}
-      <section className="py-24">
+      <section className="border-b border-hairline py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-blue-800/40" />
-            <span className="rounded-full border border-blue-800/40 bg-blue-950/30 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
-              For Businesses
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-blue-800/40" />
-          </div>
-          <h2 className="mb-4 text-center text-3xl font-black text-white md:text-5xl">
+          <SectionLabel>For businesses</SectionLabel>
+          <h2 className="mb-4 font-serif text-3xl font-semibold text-ink md:text-4xl">
             Stop taking on unknown risk
           </h2>
-          <p className="mx-auto mb-14 max-w-xl text-center text-slate-400">
+          <p className="mb-12 max-w-xl text-ink-muted">
             Every business — from landlords to retailers to service providers — deserves to know
             their customer&apos;s reputation before committing their time and resources.
           </p>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-px border border-hairline bg-hairline md:grid-cols-3">
             {FEATURES_BUSINESS.map((f) => (
-              <div key={f.title} className="glass-card card-shine group relative rounded-2xl p-6 transition-all hover:border-blue-700/40 hover:shadow-xl hover:shadow-blue-900/20">
-                <div className="mb-4 text-3xl">{f.icon}</div>
-                <h3 className="mb-2 text-lg font-bold text-white">{f.title}</h3>
-                <p className="text-sm leading-relaxed text-slate-400">{f.desc}</p>
+              <div key={f.title} className="bg-plum p-6 transition-colors hover:bg-plum-raised">
+                <h3 className="mb-2 font-serif text-lg font-semibold text-ink">{f.title}</h3>
+                <p className="text-sm leading-relaxed text-ink-muted">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -177,101 +159,46 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works — Traffic Light */}
-      <section className="py-24 bg-[#040d21]/60">
+      <section className="border-b border-hairline bg-plum-raised py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-blue-800/40" />
-            <span className="rounded-full border border-blue-800/40 bg-blue-950/30 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
-              How It Works
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-blue-800/40" />
-          </div>
-          <h2 className="mb-4 text-center text-3xl font-black text-white md:text-5xl">
+          <SectionLabel>How it works</SectionLabel>
+          <h2 className="mb-4 font-serif text-3xl font-semibold text-ink md:text-4xl">
             One glance. Instant decision.
           </h2>
-          <p className="mx-auto mb-16 max-w-xl text-center text-slate-400">
+          <p className="mb-14 max-w-xl text-ink-muted">
             Every consumer lookup returns a single signal. No guessing, no reading between the lines.
             You know in seconds whether to move forward.
           </p>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Green */}
-            <div className="glass-card relative overflow-hidden rounded-2xl p-8 text-center transition-all hover:scale-[1.02]">
-              <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/20 to-transparent" />
-              <div className="relative">
-                <div
-                  className="mx-auto mb-6 h-24 w-24 rounded-full"
-                  style={{
-                    backgroundColor: "#22c55e",
-                    boxShadow: "0 0 40px rgba(34,197,94,0.5), 0 0 80px rgba(34,197,94,0.25)",
-                  }}
-                />
-                <h3 className="mb-1 text-2xl font-black text-emerald-400">Green Light</h3>
-                <p className="mb-3 text-sm font-semibold text-emerald-600">Score 85+</p>
-                <p className="text-slate-400">Trusted customer. Move forward.</p>
+          <div className="grid gap-px border border-hairline bg-hairline md:grid-cols-3">
+            {SIGNALS.map((s) => (
+              <div key={s.label} className="bg-plum p-8">
+                <div className="mb-5 h-12 w-12 rounded-full" style={{ backgroundColor: s.color }} />
+                <h3 className="mb-1 font-serif text-xl font-semibold text-ink">{s.label}</h3>
+                <p className="mb-3 text-sm font-medium" style={{ color: s.color }}>{s.range}</p>
+                <p className="text-ink-muted">{s.desc}</p>
               </div>
-            </div>
-
-            {/* Yellow */}
-            <div className="glass-card relative overflow-hidden rounded-2xl p-8 text-center transition-all hover:scale-[1.02]">
-              <div className="absolute inset-0 bg-gradient-to-b from-yellow-950/20 to-transparent" />
-              <div className="relative">
-                <div
-                  className="mx-auto mb-6 h-24 w-24 rounded-full"
-                  style={{
-                    backgroundColor: "#f59e0b",
-                    boxShadow: "0 0 40px rgba(245,158,11,0.5), 0 0 80px rgba(245,158,11,0.25)",
-                  }}
-                />
-                <h3 className="mb-1 text-2xl font-black text-yellow-400">Yellow Light</h3>
-                <p className="mb-3 text-sm font-semibold text-yellow-600">Score 65–84</p>
-                <p className="text-slate-400">Proceed with caution. Review their history.</p>
-              </div>
-            </div>
-
-            {/* Red */}
-            <div className="glass-card relative overflow-hidden rounded-2xl p-8 text-center transition-all hover:scale-[1.02]">
-              <div className="absolute inset-0 bg-gradient-to-b from-red-950/20 to-transparent" />
-              <div className="relative">
-                <div
-                  className="mx-auto mb-6 h-24 w-24 rounded-full"
-                  style={{
-                    backgroundColor: "#ef4444",
-                    boxShadow: "0 0 40px rgba(239,68,68,0.5), 0 0 80px rgba(239,68,68,0.25)",
-                  }}
-                />
-                <h3 className="mb-1 text-2xl font-black text-red-400">Red Light</h3>
-                <p className="mb-3 text-sm font-semibold text-red-700">Score below 65</p>
-                <p className="text-slate-400">High risk. Charge more or pass.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* For Consumers */}
-      <section className="py-24">
+      <section className="border-b border-hairline py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-blue-800/40" />
-            <span className="rounded-full border border-blue-800/40 bg-blue-950/30 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-400">
-              For Consumers
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-blue-800/40" />
-          </div>
-          <h2 className="mb-4 text-center text-3xl font-black text-white md:text-5xl">
+          <SectionLabel>For consumers</SectionLabel>
+          <h2 className="mb-4 font-serif text-3xl font-semibold text-ink md:text-4xl">
             Good behavior has its rewards
           </h2>
-          <p className="mx-auto mb-14 max-w-xl text-center text-slate-400">
+          <p className="mb-12 max-w-xl text-ink-muted">
             Your reputation follows you. Build a strong score and unlock exclusive perks from the
             businesses you rely on.
           </p>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-px border border-hairline bg-hairline md:grid-cols-3">
             {FEATURES_CONSUMER.map((f) => (
-              <div key={f.title} className="glass-card card-shine group relative rounded-2xl p-6 transition-all hover:border-blue-700/40 hover:shadow-xl hover:shadow-blue-900/20">
-                <div className="mb-4 text-3xl">{f.icon}</div>
-                <h3 className="mb-2 text-lg font-bold text-white">{f.title}</h3>
-                <p className="text-sm leading-relaxed text-slate-400">{f.desc}</p>
+              <div key={f.title} className="bg-plum p-6 transition-colors hover:bg-plum-raised">
+                <h3 className="mb-2 font-serif text-lg font-semibold text-ink">{f.title}</h3>
+                <p className="text-sm leading-relaxed text-ink-muted">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -279,82 +206,70 @@ export default function LandingPage() {
       </section>
 
       {/* CTA + Email Capture */}
-      <section className="py-24 bg-[#040d21]/60">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <div className="glass-card relative overflow-hidden rounded-3xl p-12">
-            <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-blue-600/10 blur-[80px]" />
-            <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-cyan-600/8 blur-[80px]" />
-            <div className="relative">
-              <span className="mb-4 inline-block rounded-full border border-yellow-600/40 bg-yellow-950/30 px-3 py-1 text-xs font-bold uppercase tracking-widest text-yellow-400">
-                Early Access
-              </span>
-              <h2 className="mb-4 text-3xl font-black text-white md:text-5xl">
-                Join the waitlist.
-                <br />
-                <span className="gradient-text">Shape the platform.</span>
-              </h2>
-              <p className="mb-8 text-slate-400">
-                Businesses that join during early access get free access for the first year,
-                locked-in pricing forever, and direct input on platform features.
-              </p>
+      <section className="py-24">
+        <div className="mx-auto max-w-2xl px-6">
+          <div className="border border-hairline bg-plum-raised p-10 text-center">
+            <p className="mb-4 text-sm font-medium text-gold">Early access</p>
+            <h2 className="mb-4 font-serif text-3xl font-semibold text-ink md:text-4xl">
+              Join the waitlist. Shape the platform.
+            </h2>
+            <p className="mb-8 text-ink-muted">
+              Businesses that join during early access get free access for the first year,
+              locked-in pricing forever, and direct input on platform features.
+            </p>
 
-              {submitted ? (
-                <div className="rounded-xl border border-emerald-700/40 bg-emerald-950/40 p-6">
-                  <div className="mb-2 text-2xl">🎉</div>
-                  <p className="text-lg font-bold text-white">You&apos;re on the list!</p>
-                  <p className="mt-1 text-sm text-slate-400">
-                    We&apos;ll reach out at <span className="text-blue-400">{email}</span> when
-                    early access is ready for you.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
-                    required
-                    className="flex-1 rounded-xl border border-blue-800/40 bg-blue-950/40 px-5 py-4 text-base text-white placeholder-slate-500 outline-none transition-all focus:border-blue-500/60 focus:bg-blue-950/60 focus:ring-2 focus:ring-blue-600/20"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-500 hover:scale-[1.02] whitespace-nowrap"
-                  >
-                    Join the Waitlist
-                  </button>
-                </form>
-              )}
-              <p className="mt-4 text-xs text-slate-600">
-                No spam. No credit card. Cancel anytime.
-              </p>
-            </div>
+            {submitted ? (
+              <div className="border border-hairline bg-plum p-6 text-left">
+                <p className="text-lg font-semibold text-ink">You&apos;re on the list.</p>
+                <p className="mt-1 text-sm text-ink-muted">
+                  We&apos;ll reach out at <span className="text-gold">{email}</span> when
+                  early access is ready for you.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  required
+                  className="flex-1 border border-hairline bg-plum px-5 py-3.5 text-base text-ink placeholder-ink-muted outline-none transition-colors focus:border-gold"
+                />
+                <button
+                  type="submit"
+                  className="whitespace-nowrap rounded bg-gold px-8 py-3.5 text-base font-semibold text-plum transition-colors hover:bg-gold-deep"
+                >
+                  Join the waitlist
+                </button>
+              </form>
+            )}
+            <p className="mt-4 text-xs text-ink-muted">
+              No spam. No credit card. Cancel anytime.
+            </p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-blue-950/60 py-10">
+      <footer className="border-t border-hairline py-10">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" fill="white" fillOpacity="0.9" />
-                  <path d="M8 5L11 6.75V10.25L8 12L5 10.25V6.75L8 5Z" fill="white" />
-                </svg>
+              <div className="flex h-7 w-7 items-center justify-center bg-gold">
+                <span className="font-serif text-sm font-bold text-plum">R</span>
               </div>
-              <span className="text-base font-bold text-white">
-                Rep<span className="text-blue-400">flip</span>
+              <span className="font-serif text-base font-semibold text-ink">
+                Rep<span className="text-gold">flip</span>
               </span>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-ink-muted">
               © 2026 Repflip, Inc. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm text-slate-600">
-              <a href="#" className="hover:text-slate-400 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-slate-400 transition-colors">Terms</a>
-              <a href="#" className="hover:text-slate-400 transition-colors">Contact</a>
+            <div className="flex gap-6 text-sm text-ink-muted">
+              <a href="#" className="transition-colors hover:text-gold">Privacy</a>
+              <a href="#" className="transition-colors hover:text-gold">Terms</a>
+              <a href="#" className="transition-colors hover:text-gold">Contact</a>
             </div>
           </div>
         </div>

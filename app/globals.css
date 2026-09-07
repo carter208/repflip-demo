@@ -2,14 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-base: #020810;
-  --bg-card: #071230;
-  --bg-card-hover: #0a1a3e;
-  --border-subtle: rgba(37, 99, 235, 0.15);
-  --border-strong: rgba(37, 99, 235, 0.3);
+  --plum: #2b1e30;
+  --plum-raised: #352738;
+  --plum-sunken: #221727;
+  --stone: #e6ddd0;
+  --hairline: #4a3a52;
+  --ink: #ece4de;
+  --ink-muted: #b09fb8;
+  --gold: #d4a24e;
+  --gold-deep: #b8883e;
+  --tier-bronze: #b3703f;
+  --tier-silver: #a39aad;
+  --tier-gold: #d4a24e;
+  --tier-platinum: #c9bce0;
+  --sage: #8fa06a;
+  --rust: #b3564a;
 }
 
 * {
@@ -17,9 +27,9 @@
 }
 
 body {
-  background-color: var(--bg-base);
-  color: #f1f5f9;
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--plum);
+  color: var(--ink);
+  font-family: 'Work Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -28,59 +38,67 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #040d21;
+  background: var(--plum-sunken);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1a2d4a;
+  background: var(--hairline);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
-}
-
-/* Score ring animation */
-@keyframes score-pulse {
-  0%, 100% { box-shadow: 0 0 0 6px rgba(37,99,235,0.12), 0 0 50px rgba(37,99,235,0.15); }
-  50% { box-shadow: 0 0 0 8px rgba(37,99,235,0.2), 0 0 70px rgba(37,99,235,0.25); }
-}
-
-.score-ring {
-  animation: score-pulse 3s ease-in-out infinite;
-}
-
-/* Glass card */
-.glass-card {
-  background: linear-gradient(135deg, rgba(10,26,62,0.8) 0%, rgba(7,18,48,0.9) 100%);
-  border: 1px solid rgba(37,99,235,0.15);
-  backdrop-filter: blur(12px);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Hero grid */
-.hero-grid {
-  background-image:
-    linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
-  background-size: 60px 60px;
+  background: var(--gold);
 }
 
 /* Star rating */
-.star-filled { color: #f59e0b; }
-.star-empty { color: #1e3a5f; }
+.star-filled { color: var(--gold); }
+.star-empty { color: var(--hairline); }
 
-/* Shine on cards */
-.card-shine::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
-  border-radius: inherit;
-  pointer-events: none;
+/* Loading / "checking" pulse — opacity + scale only, no glow */
+@keyframes checking-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+.signal-checking {
+  animation: checking-pulse 0.9s ease-in-out infinite;
+}
+
+/* Verified stamp — snap/overshoot entrance, used after a score reveal
+   finishes and for other confirmation moments */
+@keyframes stamp-in {
+  0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(1.15) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+}
+.stamp-in {
+  animation: stamp-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Celebratory reveal — points bonus, mystery box */
+@keyframes bonus-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bonus-pop {
+  animation: bonus-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes box-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-6deg); }
+  40% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(4deg); }
+}
+.box-shake {
+  animation: box-shake 0.5s ease-in-out infinite;
+}
+
+/* Tag / chip hover — subtle lift + accent, not a generic scale-up */
+.tag-interactive {
+  transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.tag-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  color: var(--gold);
 }

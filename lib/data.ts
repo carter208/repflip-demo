@@ -8,6 +8,9 @@ export interface Review {
   tags: string[];
   notes?: string;
   date: string;
+  // True if an active streak freeze absorbed this review's negative tags,
+  // shielding the clean streak instead of resetting it.
+  protectedByFreeze?: boolean;
 }
 
 export interface Consumer {
@@ -42,6 +45,22 @@ export function getTierFromScore(score: number): Tier {
   return "Bronze";
 }
 
+export interface TierProgress {
+  pct: number;
+  nextTier: Tier | null;
+  pointsToNext: number;
+  max: number;
+  min: number;
+}
+
+// Thresholds mirror getTierFromScore: Bronze 0-54, Silver 55-74, Gold 75-89, Platinum 90-100.
+export function getTierProgress(score: number, tier: Tier): TierProgress {
+  if (tier === "Platinum") return { pct: 100, nextTier: null, pointsToNext: 0, max: 100, min: 90 };
+  if (tier === "Gold") return { pct: ((score - 75) / 15) * 100, nextTier: "Platinum", pointsToNext: 90 - score, max: 90, min: 75 };
+  if (tier === "Silver") return { pct: ((score - 55) / 20) * 100, nextTier: "Gold", pointsToNext: 75 - score, max: 75, min: 55 };
+  return { pct: (score / 55) * 100, nextTier: "Silver", pointsToNext: 55 - score, max: 55, min: 0 };
+}
+
 // Every consumer's reputation score starts at this baseline and is adjusted
 // up or down by the weight of every behavioral tag across their reviews —
 // see TAG_WEIGHTS / getScoreBreakdown below. The score stored on each
@@ -50,6 +69,7 @@ export function getTierFromScore(score: number): Tier {
 // breakdown, never a separately hand-set value.
 export const SCORE_BASELINE = 60;
 
+// Per-tag weight toward the reputation score. Positive tags add, negative tags subtract.
 export const TAG_WEIGHTS: Record<string, number> = {
   "Paid on time": 8,
   "Clear communicator": 5,
@@ -69,6 +89,115 @@ export interface ScoreContribution {
   positive: boolean;
 }
 
+// Single source of truth for which tags count as negative — derived from
+// TAG_WEIGHTS instead of duplicating the tag list across pages.
+export const NEGATIVE_TAGS: string[] = Object.keys(TAG_WEIGHTS).filter((tag) => TAG_WEIGHTS[tag] < 0);
+
+export function isNegativeTag(tag: string): boolean {
+  return (TAG_WEIGHTS[tag] ?? 0) < 0;
+}
+
+// Cost, in points, to hold one streak freeze. Sits mid-range among existing
+// point costs in the app (partner offers run 200-500, gift cards 10,000).
+export const FREEZE_COST = 250;
+
+// ── Points accrual ──────────────────────────────────────────────────────
+
+// Flat points a consumer earns for an ordinary positive review.
+export const BASE_REVIEW_POINTS = 100;
+
+// Chance a given positive review triggers a variable bonus — "sometimes,"
+// not "usually": roughly 1 in 5.
+const BONUS_CHANCE = 0.2;
+const MULTIPLIER_FACTOR = 2;
+const FLAT_BONUS_AMOUNT = 50;
+
+export type BonusKind = "multiplier" | "flat" | null;
+
+export interface PointsAward {
+  base: number;
+  bonusKind: BonusKind;
+  bonusAmount: number;
+  total: number;
+}
+
+// Rolls whether this review earns a bonus, and which kind. Exported (not
+// inlined into awardReviewPoints) so the odds can be verified directly.
+export function rollPointsAward(basePoints: number = BASE_REVIEW_POINTS): PointsAward {
+  if (Math.random() >= BONUS_CHANCE) {
+    return { base: basePoints, bonusKind: null, bonusAmount: 0, total: basePoints };
+  }
+  if (Math.random() < 0.5) {
+    const total = basePoints * MULTIPLIER_FACTOR;
+    return { base: basePoints, bonusKind: "multiplier", bonusAmount: total - basePoints, total };
+  }
+  return { base: basePoints, bonusKind: "flat", bonusAmount: FLAT_BONUS_AMOUNT, total: basePoints + FLAT_BONUS_AMOUNT };
+}
+
+// Awards points for a submitted review and applies them to the consumer's
+// balance in place. Reviews with any negative tag earn nothing (matches the
+// existing "every positive review earns points" copy elsewhere in the app).
+export function awardReviewPoints(consumerId: string, tags: string[]): PointsAward | null {
+  const consumer = CONSUMERS.find((c) => c.id === consumerId);
+  if (!consumer) return null;
+  if (tags.some(isNegativeTag)) return null;
+  const award = rollPointsAward();
+  consumer.points += award.total;
+  return award;
+}
+
+// ── Mystery box ─────────────────────────────────────────────────────────
+
+export const MYSTERY_BOX_COST = 150;
+
+export interface MysteryReward {
+  id: string;
+  label: string;
+  emoji: string;
+  pointsDelta: number;
+  weight: number;
+}
+
+// Weighted pool — small/common outcomes far more likely than the jackpot.
+// Placeholder rewards only; no real fulfillment wired up yet.
+export const MYSTERY_BOX_REWARDS: MysteryReward[] = [
+  { id: "small", label: "+25 bonus points", emoji: "✨", pointsDelta: 25, weight: 35 },
+  { id: "medium", label: "+75 bonus points", emoji: "💎", pointsDelta: 75, weight: 30 },
+  { id: "discount", label: "10% off code: MYSTERY10", emoji: "🏷️", pointsDelta: 0, weight: 20 },
+  { id: "large", label: "+150 bonus points", emoji: "🎁", pointsDelta: 150, weight: 10 },
+  { id: "jackpot", label: "Jackpot! +500 bonus points", emoji: "🎆", pointsDelta: 500, weight: 5 },
+];
+
+export function rollMysteryReward(): MysteryReward {
+  const totalWeight = MYSTERY_BOX_REWARDS.reduce((sum, r) => sum + r.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const reward of MYSTERY_BOX_REWARDS) {
+    if (roll < reward.weight) return reward;
+    roll -= reward.weight;
+  }
+  return MYSTERY_BOX_REWARDS[MYSTERY_BOX_REWARDS.length - 1];
+}
+
+// Consecutive clean (no negative tag) reviews, counting from the most
+// recent backwards. A negative-tagged review breaks the streak — unless it
+// was shielded by an active streak freeze (protectedByFreeze), in which
+// case it's skipped rather than counted or treated as a break.
+export function getCleanStreak(reviews: Review[]): number {
+  let streak = 0;
+  for (const review of reviews) {
+    const hasNegativeTag = review.tags.some(isNegativeTag);
+    if (!hasNegativeTag) {
+      streak += 1;
+      continue;
+    }
+    if (review.protectedByFreeze) continue;
+    break;
+  }
+  return streak;
+}
+
+// Aggregates a consumer's real review tags into weighted score contributions,
+// sorted by magnitude so the biggest drivers (good or bad) show first.
 export function getScoreBreakdown(reviews: Review[]): ScoreContribution[] {
   const counts: Record<string, number> = {};
   reviews.forEach((r) => r.tags.forEach((t) => { counts[t] = (counts[t] ?? 0) + 1; }));
@@ -85,35 +214,13 @@ export function deriveScore(reviews: Review[]): number {
   return Math.max(0, Math.min(100, SCORE_BASELINE + adjustment));
 }
 
-export const TIER_CONFIG: Record<Tier, { color: string; bg: string; border: string; glow: string; text: string }> = {
-  Bronze: {
-    color: "#cd7f32",
-    bg: "bg-amber-900/20",
-    border: "border-amber-700/40",
-    glow: "shadow-[0_0_24px_rgba(205,127,50,0.25)]",
-    text: "text-amber-600",
-  },
-  Silver: {
-    color: "#9ca3af",
-    bg: "bg-slate-700/20",
-    border: "border-slate-500/40",
-    glow: "shadow-[0_0_24px_rgba(156,163,175,0.2)]",
-    text: "text-slate-400",
-  },
-  Gold: {
-    color: "#f59e0b",
-    bg: "bg-yellow-900/20",
-    border: "border-yellow-600/40",
-    glow: "shadow-[0_0_24px_rgba(245,158,11,0.3)]",
-    text: "text-yellow-400",
-  },
-  Platinum: {
-    color: "#e2e8f0",
-    bg: "bg-sky-900/20",
-    border: "border-sky-400/40",
-    glow: "shadow-[0_0_24px_rgba(186,230,253,0.25)]",
-    text: "text-sky-200",
-  },
+// Tiers read as colored text labels, not pill/badge containers — so each
+// tier only needs its color, not a set of background/border/glow classes.
+export const TIER_CONFIG: Record<Tier, { color: string }> = {
+  Bronze: { color: "#b3703f" },
+  Silver: { color: "#a39aad" },
+  Gold: { color: "#d4a24e" },
+  Platinum: { color: "#c9bce0" },
 };
 
 function makeConsumer(

@@ -9,38 +9,38 @@ export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
   const hitCeiling = SCORE_BASELINE + total > 100;
 
   return (
-    <div className="rounded-2xl border border-blue-800/40 bg-blue-950/30 p-4">
-      <p className="mb-1 text-sm font-bold text-white">
-        Score breakdown <span className="font-normal text-slate-500">— starts at {SCORE_BASELINE}, adjusted by verified reviews</span>
+    <div className="border border-hairline bg-plum-sunken p-4">
+      <p className="mb-1 text-sm font-semibold text-ink">
+        Score breakdown <span className="font-normal text-ink-muted">— starts at {SCORE_BASELINE}, adjusted by verified reviews</span>
       </p>
       <Link
         href="/how-scoring-works"
-        className="mb-3 inline-block text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
+        className="mb-3 inline-block text-xs font-semibold text-gold transition-colors hover:text-gold-deep"
       >
         See how this is calculated →
       </Link>
 
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between rounded-lg bg-blue-950/50 px-3 py-1.5">
-          <span className="text-sm text-slate-400">Baseline</span>
-          <span className="text-sm font-bold text-slate-300">{SCORE_BASELINE}</span>
+        <div className="flex items-center justify-between border border-hairline bg-plum px-3 py-1.5">
+          <span className="text-sm text-ink-muted">Baseline</span>
+          <span className="text-sm font-semibold text-ink">{SCORE_BASELINE}</span>
         </div>
 
         {items.length === 0 ? (
-          <p className="px-3 py-2 text-sm text-slate-600">No reviews yet — nothing to adjust the baseline.</p>
+          <p className="px-3 py-2 text-sm text-ink-muted">No reviews yet — nothing to adjust the baseline.</p>
         ) : (
           items.map((item) => (
             <div
               key={item.tag}
-              className={`flex items-center justify-between rounded-lg border px-3 py-1.5 ${
-                item.positive ? "border-emerald-900/30 bg-emerald-950/20" : "border-red-900/30 bg-red-950/20"
+              className={`flex items-center justify-between border-l-2 px-3 py-1.5 ${
+                item.positive ? "border-sage" : "border-rust"
               }`}
             >
-              <span className="text-sm text-slate-300">
+              <span className="text-sm text-ink">
                 {item.tag}
                 {item.count > 1 ? ` ×${item.count}` : ""}
               </span>
-              <span className={`text-sm font-bold ${item.positive ? "text-emerald-400" : "text-red-400"}`}>
+              <span className={`text-sm font-semibold ${item.positive ? "text-sage" : "text-rust"}`}>
                 {item.points > 0 ? "+" : ""}
                 {item.points}
               </span>
@@ -48,11 +48,11 @@ export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
           ))
         )}
 
-        <div className="mt-1 flex items-center justify-between border-t border-blue-900/40 px-3 pt-2.5">
-          <span className="text-sm font-bold text-white">Score</span>
-          <span className="text-sm font-black text-white">
+        <div className="mt-1 flex items-center justify-between border-t border-hairline px-3 pt-2.5">
+          <span className="text-sm font-semibold text-ink">Score</span>
+          <span className="font-serif text-sm font-bold text-gold">
             {clamped}
-            {(hitFloor || hitCeiling) && <span className="ml-1 font-normal text-slate-500">(clamped)</span>}
+            {(hitFloor || hitCeiling) && <span className="ml-1 font-sans font-normal text-ink-muted">(clamped)</span>}
           </span>
         </div>
       </div>

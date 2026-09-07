@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import { CONSUMERS, TIER_CONFIG, type Consumer, type Tier } from "@/lib/data";
+import { CONSUMERS, TIER_CONFIG, getTierProgress, getCleanStreak, NEGATIVE_TAGS, FREEZE_COST, type Consumer } from "@/lib/data";
+import { useScoreReveal } from "@/lib/useScoreReveal";
+import { drawScoreCard } from "@/lib/shareCard";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
+import ShareCard from "@/components/ShareCard";
 
 // Points breakdown data (100 pts = $1)
 const POINTS_BREAKDOWN: Record<string, { earned: number; spent: number }> = {
@@ -16,17 +19,10 @@ const POINTS_BREAKDOWN: Record<string, { earned: number; spent: number }> = {
 };
 
 const TIPS = [
-  { emoji: "⏰", title: "Be reliable", desc: "Being present and ready earns the highest-trust tag. Consistency builds your score fastest." },
-  { emoji: "💳", title: "Pay without disputes", desc: '"Paid on time" is the top-weighted positive tag. Prompt payment boosts every review.' },
-  { emoji: "💬", title: "Communicate proactively", desc: "Send a heads-up if plans change. Clear communicator reviews lift scores across every business." },
+  { title: "Be reliable", desc: "Being present and ready earns the highest-trust tag. Consistency builds your score fastest." },
+  { title: "Pay without disputes", desc: '"Paid on time" is the top-weighted positive tag. Prompt payment boosts every review.' },
+  { title: "Communicate proactively", desc: "Send a heads-up if plans change. Clear communicator reviews lift scores across every business." },
 ];
-
-function getTierProgress(score: number, tier: Tier) {
-  if (tier === "Platinum") return { pct: 100, nextTier: null, pointsToNext: 0, max: 100, min: 90 };
-  if (tier === "Gold") return { pct: ((score - 75) / 15) * 100, nextTier: "Platinum" as Tier, pointsToNext: 90 - score, max: 90, min: 75 };
-  if (tier === "Silver") return { pct: ((score - 55) / 20) * 100, nextTier: "Gold" as Tier, pointsToNext: 75 - score, max: 75, min: 55 };
-  return { pct: (score / 55) * 100, nextTier: "Silver" as Tier, pointsToNext: 55 - score, max: 55, min: 0 };
-}
 
 function StarDisplay({ rating }: { rating: number }) {
   return (
@@ -40,25 +36,30 @@ function StarDisplay({ rating }: { rating: number }) {
   );
 }
 
-function ScoreCircle({ score, tier }: { score: number; tier: Consumer["tier"] }) {
-  const cfg = TIER_CONFIG[tier];
-  const circumference = 2 * Math.PI * 56;
-  const progress = (score / 100) * circumference;
+function ScoreCircle({ score, revealKey }: { score: number; revealKey: string | number }) {
+  const { displayScore, stampVisible } = useScoreReveal(score, revealKey, 1200);
+  const circumference = 2 * Math.PI * 58;
+  const progress = (displayScore / 100) * circumference;
   return (
-    <div className="relative flex h-44 w-44 items-center justify-center">
-      <div className="absolute inset-0 rounded-full opacity-20 blur-xl" style={{ backgroundColor: cfg.color }} />
-      <svg className="absolute h-44 w-44 -rotate-90" viewBox="0 0 130 130">
-        <circle cx="65" cy="65" r="56" fill="none" stroke="rgba(37,99,235,0.08)" strokeWidth="10" />
+    <div className="relative flex h-48 w-48 items-center justify-center">
+      <svg className="absolute h-48 w-48 -rotate-90" viewBox="0 0 136 136">
+        <circle cx="68" cy="68" r="58" fill="none" stroke="#4a3a52" strokeWidth="8" />
         <circle
-          cx="65" cy="65" r="56" fill="none" stroke={cfg.color} strokeWidth="10"
-          strokeLinecap="round" strokeDasharray={`${progress} ${circumference}`}
-          style={{ filter: `drop-shadow(0 0 8px ${cfg.color}80)` }}
+          cx="68" cy="68" r="58" fill="none" stroke="#d4a24e" strokeWidth="8"
+          strokeDasharray={`${progress} ${circumference}`}
         />
       </svg>
       <div className="relative z-10 text-center">
-        <div className="text-6xl font-black leading-none text-white">{score}</div>
-        <div className="mt-1 text-sm font-medium text-slate-500">out of 100</div>
+        <div className="font-serif text-7xl font-bold leading-none text-gold">{displayScore}</div>
+        <div className="mt-1 text-sm text-ink-muted">out of 100</div>
       </div>
+      {stampVisible && (
+        <div className="stamp-in absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-plum-raised bg-gold text-plum">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
@@ -80,6 +81,42 @@ function ProfileContent() {
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
   const [disputedReviews, setDisputedReviews] = useState<Record<string, string>>({});
+  const [points, setPoints] = useState(consumer.points);
+  const [freezeActive, setFreezeActive] = useState(false);
+  const [newReviewBanner, setNewReviewBanner] = useState<{ businessName: string; reviewId: string } | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const shareCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  const cleanStreak = getCleanStreak(consumer.reviews);
+
+  useEffect(() => {
+    setPoints(consumer.points);
+    setFreezeActive(false);
+  }, [consumer.id, consumer.points]);
+
+  useEffect(() => {
+    const latest = consumer.reviews[0];
+    if (!latest) { setNewReviewBanner(null); return; }
+    const key = `repflip:lastSeenReview:${consumer.id}`;
+    const lastSeen = window.localStorage.getItem(key);
+    setNewReviewBanner(lastSeen !== latest.id ? { businessName: latest.businessName, reviewId: latest.id } : null);
+  }, [consumer.id, consumer.reviews]);
+
+  const dismissNewReviewBanner = () => {
+    const latest = consumer.reviews[0];
+    if (latest) window.localStorage.setItem(`repflip:lastSeenReview:${consumer.id}`, latest.id);
+    setNewReviewBanner(null);
+  };
+
+  const scrollToLatestReview = () => {
+    const latest = consumer.reviews[0];
+    setActiveTab("all");
+    dismissNewReviewBanner();
+    setTimeout(() => {
+      document.getElementById(`review-${latest?.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
 
   const handleClaim = () => {
     setClaiming(true);
@@ -107,7 +144,35 @@ function ProfileContent() {
     }, 800);
   };
 
-  const negativeSet = new Set(["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"]);
+  const handlePurchaseFreeze = () => {
+    if (freezeActive || points < FREEZE_COST) return;
+    setPoints((p) => p - FREEZE_COST);
+    setFreezeActive(true);
+  };
+
+  const handleDownloadShareCard = async () => {
+    const canvas = shareCanvasRef.current;
+    if (!canvas) return;
+    await drawScoreCard(canvas, { name: consumer.name, tier: consumer.tier, score: consumer.score, streak: cleanStreak });
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `repflip-score-${consumer.name.split(" ")[0].toLowerCase()}.png`;
+    a.click();
+  };
+
+  const handleCopyShareLink = async () => {
+    const link = `${window.location.origin}/share/${consumer.id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Clipboard access denied — button label simply won't confirm.
+    }
+  };
+
+  const negativeSet = new Set(NEGATIVE_TAGS);
 
   const avgRating =
     consumer.reviews.length > 0
@@ -115,7 +180,7 @@ function ProfileContent() {
       : 0;
 
   const yearReviews = consumer.reviews.filter((r) => r.date.includes("2026"));
-  const dollarValue = `$${(consumer.points / 100).toFixed(2)}`;
+  const dollarValue = `$${(points / 100).toFixed(2)}`;
 
   const filteredReviews =
     activeTab === "positive"
@@ -125,19 +190,16 @@ function ProfileContent() {
       : consumer.reviews;
 
   return (
-    <div className="min-h-screen bg-[#020810]">
+    <div className="min-h-screen bg-plum">
       <div className="mx-auto max-w-5xl px-6 pb-16 pt-28">
-
         {/* Consumer Selector */}
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2">
           {CONSUMERS.map((c) => (
             <Link
               key={c.id}
               href={`/profile?id=${c.id}`}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
-                c.id === id
-                  ? "border-blue-600/50 bg-blue-600/20 text-blue-300"
-                  : "border-blue-900/40 bg-blue-950/20 text-slate-400 hover:border-blue-800/40 hover:text-white"
+              className={`border-b text-sm font-medium transition-colors ${
+                c.id === id ? "border-gold text-ink" : "border-transparent text-ink-muted hover:text-ink"
               }`}
             >
               {c.name}
@@ -148,74 +210,38 @@ function ProfileContent() {
         <div className="grid gap-5 lg:grid-cols-3">
           {/* ── Left: Score Card ── */}
           <div className="lg:col-span-1">
-            <div className="glass-card relative overflow-hidden rounded-2xl p-6 shadow-card-glow sticky top-24">
-              <div
-                className="absolute -right-10 -top-10 h-48 w-48 rounded-full opacity-10 blur-3xl"
-                style={{ backgroundColor: cfg.color }}
-              />
-
+            <div className="sticky top-24 border border-hairline bg-plum-raised p-6">
               {/* Avatar + Name */}
-              <div className="relative mb-5 text-center">
-                <div
-                  className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white"
-                  style={{ background: `linear-gradient(135deg, ${cfg.color}30, ${cfg.color}10)`, border: `1px solid ${cfg.color}25` }}
-                >
+              <div className="mb-5 text-center">
+                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center border border-hairline bg-plum-sunken font-serif text-2xl font-semibold text-ink">
                   {consumer.name.charAt(0)}
                 </div>
-                <h1 className="text-xl font-black text-white">{consumer.name}</h1>
-                <p className="mt-0.5 text-sm text-slate-400">{consumer.city}</p>
-                <p className="mt-0.5 text-xs text-slate-600">Profile created {consumer.memberSince}</p>
-                <div className="mt-3 flex flex-col gap-1.5 text-left">
-                  <div className="flex items-center gap-2 rounded-lg border border-blue-900/40 bg-blue-950/30 px-3 py-1.5">
-                    <svg className="h-3.5 w-3.5 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    <span className="text-xs text-slate-400">{consumer.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-lg border border-blue-900/40 bg-blue-950/30 px-3 py-1.5">
-                    <svg className="h-3.5 w-3.5 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-xs text-slate-400 break-all">{consumer.email}</span>
-                  </div>
+                <h1 className="font-serif text-xl font-semibold text-ink">{consumer.name}</h1>
+                <p className="mt-0.5 text-sm text-ink-muted">{consumer.city}</p>
+                <p className="mt-0.5 text-xs text-ink-muted">Profile created {consumer.memberSince}</p>
+                <div className="mt-3 flex flex-col gap-1 text-left text-xs text-ink-muted">
+                  <span>{consumer.phone}</span>
+                  <span className="break-all">{consumer.email}</span>
                 </div>
               </div>
 
-              {/* ── Points Hero (most prominent number) ── */}
-              <div
-                className="mb-5 rounded-2xl border p-4 text-center relative overflow-hidden"
-                style={{ backgroundColor: `${cfg.color}10`, borderColor: `${cfg.color}30` }}
-              >
-                <div className="absolute inset-0 opacity-5 blur-2xl pointer-events-none" style={{ background: cfg.color }} />
-                <div className="relative">
-                  <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-slate-500">Points Balance</p>
-                  <div className="flex items-baseline justify-center gap-2 flex-wrap">
-                    <span className="text-4xl font-black text-white leading-none">{consumer.points.toLocaleString()}</span>
-                    <span className="text-lg font-bold text-slate-400">pts</span>
-                  </div>
-                  <div
-                    className="mt-1 inline-block rounded-full px-3 py-0.5 text-sm font-bold"
-                    style={{ color: cfg.color, backgroundColor: `${cfg.color}20` }}
-                  >
-                    = {dollarValue}
-                  </div>
-                  <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-blue-950/80">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${Math.min((consumer.points / 5000) * 100, 100)}%`,
-                        background: `linear-gradient(90deg, ${cfg.color}80, ${cfg.color})`,
-                        boxShadow: `0 0 8px ${cfg.color}60`,
-                      }}
-                    />
-                  </div>
-                  <p className="mt-1.5 text-xs text-slate-600">100 pts = $1.00 · Points never expire</p>
+              {/* Points Balance */}
+              <div className="mb-5 border-t border-hairline pt-4 text-center">
+                <p className="mb-0.5 text-sm text-ink-muted">Points balance</p>
+                <div className="flex items-baseline justify-center gap-2 flex-wrap">
+                  <span className="font-serif text-4xl font-bold leading-none text-gold">{points.toLocaleString()}</span>
+                  <span className="text-base font-medium text-ink-muted">pts</span>
                 </div>
+                <p className="mt-1 text-sm font-medium text-ink-muted">{dollarValue}</p>
+                <div className="mt-2.5 h-1 w-full bg-hairline">
+                  <div className="h-full bg-gold transition-all" style={{ width: `${Math.min((points / 5000) * 100, 100)}%` }} />
+                </div>
+                <p className="mt-1.5 text-xs text-ink-muted">100 pts = $1.00. Points never expire.</p>
               </div>
 
               {/* Score Ring */}
-              <div className="relative mb-5 flex justify-center score-ring rounded-full">
-                <ScoreCircle score={consumer.score} tier={consumer.tier} />
+              <div className="mb-5 flex justify-center border-y border-hairline py-6">
+                <ScoreCircle score={consumer.score} revealKey={consumer.id} />
               </div>
 
               {/* Score Breakdown — right under the score itself, real visual weight */}
@@ -223,33 +249,30 @@ function ProfileContent() {
                 <ScoreBreakdown reviews={consumer.reviews} />
               </div>
 
-              {/* Tier Badge */}
-              <div
-                className="mb-3 flex items-center justify-center gap-2 rounded-xl border py-2.5"
-                style={{ backgroundColor: `${cfg.color}12`, borderColor: `${cfg.color}30` }}
-              >
-                <div
-                  className="flex h-6 w-6 items-center justify-center rounded-lg text-xs font-black"
-                  style={{ backgroundColor: `${cfg.color}30`, color: cfg.color }}
-                >
-                  {consumer.tier[0]}
-                </div>
-                <span className="text-sm font-bold" style={{ color: cfg.color }}>
-                  {consumer.tier} Member
-                </span>
-              </div>
+              {/* Tier label */}
+              <p className="mb-4 text-center font-serif text-lg font-semibold" style={{ color: cfg.color }}>
+                {consumer.tier} member
+              </p>
 
-              {/* Tier Progress — enhanced */}
-              <div className="mb-4 rounded-xl border border-blue-900/40 bg-blue-950/20 p-3">
+              {/* Share Score CTA */}
+              <button
+                onClick={() => setShareOpen(true)}
+                className="mb-4 w-full rounded bg-gold py-2.5 text-sm font-semibold text-plum transition-colors hover:bg-gold-deep"
+              >
+                Share your score
+              </button>
+
+              {/* Tier Progress */}
+              <div className="mb-4 border border-hairline p-3">
                 {tierProgress.nextTier ? (
                   <>
-                    <p className="mb-2 text-xs leading-relaxed text-slate-400">
+                    <p className="mb-2 text-xs leading-relaxed text-ink-muted">
                       You need{" "}
-                      <span className="font-bold" style={{ color: nextCfg?.color }}>
+                      <span className="font-semibold" style={{ color: nextCfg?.color }}>
                         {tierProgress.pointsToNext} more points
                       </span>{" "}
                       to reach{" "}
-                      <span className="font-bold" style={{ color: nextCfg?.color }}>
+                      <span className="font-semibold" style={{ color: nextCfg?.color }}>
                         {tierProgress.nextTier}
                       </span>{" "}
                       tier.
@@ -258,55 +281,80 @@ function ProfileContent() {
                       <span className="font-semibold" style={{ color: cfg.color }}>{consumer.tier}</span>
                       <span className="font-semibold" style={{ color: nextCfg?.color }}>{tierProgress.nextTier}</span>
                     </div>
-                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-blue-950/60">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(tierProgress.pct, 100)}%`,
-                          background: `linear-gradient(90deg, ${cfg.color}99, ${cfg.color})`,
-                          boxShadow: `0 0 8px ${cfg.color}60`,
-                        }}
-                      />
+                    <div className="h-1 w-full bg-hairline">
+                      <div className="h-full bg-gold transition-all" style={{ width: `${Math.min(tierProgress.pct, 100)}%` }} />
                     </div>
-                    <p className="mt-1.5 text-right text-xs font-semibold" style={{ color: nextCfg?.color }}>
+                    <p className="mt-1.5 text-right text-xs font-semibold text-gold">
                       {Math.round(tierProgress.pct)}% there
                     </p>
                   </>
                 ) : (
                   <div className="text-center py-1">
-                    <p className="text-sm font-bold" style={{ color: cfg.color }}>Max Tier Reached 🎉</p>
-                    <p className="mt-0.5 text-xs text-slate-500">You&apos;re at the top. Keep it up.</p>
+                    <p className="text-sm font-semibold" style={{ color: cfg.color }}>Max tier reached.</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">You&apos;re at the top. Keep it up.</p>
                   </div>
                 )}
               </div>
 
-              {/* Stats */}
-              <div className="mb-4 grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">
-                  <div className="text-xl font-black text-white">{consumer.reviews.length}</div>
-                  <div className="text-xs text-slate-500">Reviews</div>
+              {/* Clean Streak + Streak Freeze */}
+              <div className="mb-4 border border-hairline">
+                <div className="flex items-center justify-between px-3 py-2.5 text-sm">
+                  <span className="text-ink-muted">Clean streak</span>
+                  <span className="font-semibold text-ink">
+                    {cleanStreak} review{cleanStreak === 1 ? "" : "s"}
+                  </span>
                 </div>
-                <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">
-                  <div className="text-xl font-black text-white">
-                    {consumer.reviews.length > 0 ? avgRating.toFixed(1) : "—"}
+                <p className="px-3 pb-2.5 text-xs text-ink-muted">
+                  {cleanStreak === 0
+                    ? "No active streak yet — your next great review starts one."
+                    : "Consecutive positive reviews, no red flags."}
+                </p>
+                <div className="flex items-center justify-between gap-3 border-t border-hairline px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm text-ink-muted">Streak freeze</p>
+                    <p className="text-xs text-ink-muted">
+                      {freezeActive ? "Active — your next negative review won't break your streak." : "Protects your streak from your next negative review."}
+                    </p>
                   </div>
-                  <div className="text-xs text-slate-500">Avg Rating</div>
+                  {freezeActive ? (
+                    <span className="shrink-0 text-sm font-semibold text-sage">Active</span>
+                  ) : (
+                    <button
+                      onClick={handlePurchaseFreeze}
+                      disabled={points < FREEZE_COST}
+                      className="shrink-0 rounded bg-gold px-3 py-1.5 text-xs font-semibold text-plum transition-colors hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Buy — {FREEZE_COST} pts
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="mb-4 border border-hairline">
+                <div className="flex items-center justify-between border-b border-hairline px-3 py-2.5 text-sm">
+                  <span className="text-ink-muted">Reviews</span>
+                  <span className="font-semibold text-ink">{consumer.reviews.length}</span>
+                </div>
+                <div className="flex items-center justify-between px-3 py-2.5 text-sm">
+                  <span className="text-ink-muted">Average rating</span>
+                  <span className="font-semibold text-ink">{consumer.reviews.length > 0 ? avgRating.toFixed(1) : "—"}</span>
                 </div>
               </div>
 
               {/* Claim Button */}
               {claimed ? (
-                <div className="w-full rounded-xl border border-emerald-700/40 bg-emerald-950/40 py-3 text-center">
-                  <p className="text-sm font-bold text-emerald-400">✓ Profile Claimed</p>
-                  <p className="mt-0.5 text-xs text-emerald-700">Verification pending</p>
+                <div className="w-full border border-sage py-3 text-center">
+                  <p className="text-sm font-semibold text-sage">Profile claimed</p>
+                  <p className="mt-0.5 text-xs text-ink-muted">Verification pending</p>
                 </div>
               ) : (
                 <button
                   onClick={handleClaim}
                   disabled={claiming}
-                  className="w-full rounded-xl border border-blue-700/40 bg-blue-900/30 py-3 text-sm font-bold text-blue-300 transition-all hover:bg-blue-800/40 hover:text-white disabled:opacity-60"
+                  className="w-full rounded border border-hairline py-3 text-sm font-semibold text-ink transition-colors hover:border-gold hover:text-gold disabled:opacity-60"
                 >
-                  {claiming ? "Verifying…" : "Claim This Profile"}
+                  {claiming ? "Verifying…" : "Claim this profile"}
                 </button>
               )}
             </div>
@@ -314,168 +362,134 @@ function ProfileContent() {
 
           {/* ── Right Column ── */}
           <div className="lg:col-span-2 flex flex-col gap-5">
-
-            {/* Welcome Banner (dismissible) */}
-            {!bannerDismissed && (
-              <div className="relative overflow-hidden rounded-2xl border border-blue-700/40 bg-gradient-to-br from-blue-950/80 to-cyan-950/40 p-5">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,rgba(37,99,235,0.18),transparent_60%)] pointer-events-none" />
-                <div className="relative">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">👋</span>
-                      <span className="text-sm font-black text-white">Welcome to your Repflip profile</span>
-                    </div>
+            {/* New Review Notification */}
+            {newReviewBanner && (
+              <div className="border-l-2 border-gold bg-plum-raised p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-serif text-base font-semibold text-ink">New review just in</p>
+                    <p className="mt-0.5 text-sm text-ink-muted">
+                      You just got a new review from{" "}
+                      <span className="font-semibold text-gold">{newReviewBanner.businessName}</span> — see how
+                      it moved your score.
+                    </p>
                     <button
-                      onClick={() => setBannerDismissed(true)}
-                      className="flex h-6 w-6 items-center justify-center rounded-full border border-blue-800/40 bg-blue-950/60 text-slate-500 hover:text-white transition-colors text-xs"
+                      onClick={scrollToLatestReview}
+                      className="mt-3 rounded bg-gold px-4 py-1.5 text-xs font-semibold text-plum transition-colors hover:bg-gold-deep"
                     >
-                      ✕
+                      View review →
                     </button>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { step: "1", emoji: "⭐", title: "Your score", desc: "0–100 reputation score built from every review you receive." },
-                      { step: "2", emoji: "🪙", title: "Earn points", desc: "Every positive review earns points. 100 pts = $1 real value." },
-                      { step: "3", emoji: "🎁", title: "Redeem rewards", desc: "Spend points on gift cards, discounts, and monthly cash draws." },
-                    ].map((s) => (
-                      <div key={s.step} className="rounded-xl border border-blue-900/40 bg-blue-950/40 p-3 text-center">
-                        <div className="mb-1.5 text-xl">{s.emoji}</div>
-                        <div className="mb-0.5 text-xs font-black text-white">Step {s.step} — {s.title}</div>
-                        <div className="text-xs leading-relaxed text-slate-500">{s.desc}</div>
-                      </div>
-                    ))}
-                  </div>
                   <button
-                    onClick={() => setBannerDismissed(true)}
-                    className="mt-3 w-full rounded-xl border border-blue-700/40 bg-blue-900/30 py-2 text-xs font-semibold text-blue-300 hover:text-white transition-colors"
+                    onClick={dismissNewReviewBanner}
+                    className="shrink-0 text-sm text-ink-muted transition-colors hover:text-ink"
                   >
-                    Got it — dismiss
+                    Dismiss
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Your Year So Far */}
-            <div className="glass-card overflow-hidden rounded-2xl">
-              <div className="border-b border-blue-900/30 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">📅</span>
-                    <h2 className="text-base font-black text-white">Your Year So Far</h2>
-                    <span className="rounded-full border border-blue-800/40 bg-blue-950/40 px-2 py-0.5 text-xs font-semibold text-slate-400">2026</span>
-                  </div>
+            {/* Welcome Banner (dismissible) */}
+            {!bannerDismissed && (
+              <div className="border border-hairline bg-plum-raised p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="font-serif text-base font-semibold text-ink">Welcome to your Repflip profile</span>
+                  <button
+                    onClick={() => setBannerDismissed(true)}
+                    className="text-sm text-ink-muted transition-colors hover:text-ink"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <div className="grid gap-px border border-hairline bg-hairline sm:grid-cols-3">
+                  {[
+                    { step: "1", title: "Your score", desc: "0–100 reputation score built from every review you receive." },
+                    { step: "2", title: "Earn points", desc: "Every positive review earns points. 100 pts = $1 real value." },
+                    { step: "3", title: "Redeem rewards", desc: "Spend points on gift cards, discounts, and monthly cash draws." },
+                  ].map((s) => (
+                    <div key={s.step} className="bg-plum-raised p-3">
+                      <div className="mb-0.5 text-sm font-semibold text-ink">Step {s.step} — {s.title}</div>
+                      <div className="text-xs leading-relaxed text-ink-muted">{s.desc}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-0 sm:grid-cols-4">
+            )}
+
+            {/* Your Year So Far */}
+            <div className="border border-hairline bg-plum-raised">
+              <div className="flex items-center justify-between border-b border-hairline px-6 py-4">
+                <h2 className="font-serif text-base font-semibold text-ink">Your year so far</h2>
+                <span className="border border-hairline px-2 py-0.5 text-xs text-ink-muted">2026</span>
+              </div>
+              <div className="grid grid-cols-2 gap-px bg-hairline sm:grid-cols-4">
                 {[
-                  {
-                    value: yearReviews.length,
-                    label: "Reviews received",
-                    color: "text-blue-400",
-                    sub: `of ${consumer.reviews.length} total`,
-                  },
-                  {
-                    value: breakdown.earned.toLocaleString(),
-                    label: "Points earned",
-                    color: "text-emerald-400",
-                    sub: "lifetime total",
-                  },
-                  {
-                    value: dollarValue,
-                    label: "Balance value",
-                    color: "text-yellow-400",
-                    sub: `${consumer.points.toLocaleString()} pts`,
-                  },
-                  {
-                    value: consumer.tier,
-                    label: "Current tier",
-                    color: "",
-                    sub: `score ${consumer.score}/100`,
-                    style: { color: cfg.color },
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={stat.label}
-                    className={`flex flex-col items-center justify-center gap-0.5 p-4 text-center ${i < 3 ? "border-b sm:border-b-0 sm:border-r border-blue-900/30" : ""}`}
-                  >
-                    <div
-                      className={`text-2xl font-black leading-none ${stat.color}`}
-                      style={stat.style}
-                    >
+                  { value: String(yearReviews.length), label: "Reviews received", sub: `of ${consumer.reviews.length} total` },
+                  { value: breakdown.earned.toLocaleString(), label: "Points earned", sub: "lifetime total" },
+                  { value: dollarValue, label: "Balance value", sub: `${points.toLocaleString()} pts` },
+                  { value: consumer.tier, label: "Current tier", sub: `score ${consumer.score}/100`, style: { color: cfg.color } },
+                ].map((stat) => (
+                  <div key={stat.label} className="flex flex-col items-center justify-center gap-0.5 bg-plum-raised p-4 text-center">
+                    <div className="font-serif text-2xl font-bold leading-none text-ink" style={stat.style}>
                       {stat.value}
                     </div>
-                    <div className="mt-1 text-xs font-semibold text-white">{stat.label}</div>
-                    <div className="text-xs text-slate-600">{stat.sub}</div>
+                    <div className="mt-1 text-xs font-semibold text-ink">{stat.label}</div>
+                    <div className="text-xs text-ink-muted">{stat.sub}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Review History */}
-            <div className="glass-card rounded-2xl p-6">
+            <div className="border border-hairline bg-plum-raised p-6">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-lg font-black text-white">Review History</h2>
-                <span className="text-xs text-slate-500">{consumer.reviews.length} reviews</span>
+                <h2 className="font-serif text-lg font-semibold text-ink">Review history</h2>
+                <span className="text-xs text-ink-muted">{consumer.reviews.length} reviews</span>
               </div>
 
               {/* Tabs */}
-              <div className="mb-5 flex gap-1 rounded-xl border border-blue-900/30 bg-blue-950/20 p-1">
+              <div className="mb-5 flex gap-5 border-b border-hairline">
                 {(["all", "positive", "concerns"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`flex-1 rounded-lg py-2 text-xs font-semibold capitalize transition-all ${
-                      activeTab === tab
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                        : "text-slate-500 hover:text-white"
+                    className={`border-b-2 pb-2 text-sm font-semibold capitalize transition-colors ${
+                      activeTab === tab ? "border-gold text-ink" : "border-transparent text-ink-muted hover:text-ink"
                     }`}
                   >
-                    {tab === "all"
-                      ? `All (${consumer.reviews.length})`
-                      : tab === "positive"
-                      ? "Positive"
-                      : "Concerns"}
+                    {tab === "all" ? `All (${consumer.reviews.length})` : tab === "positive" ? "Positive" : "Concerns"}
                   </button>
                 ))}
               </div>
 
               {filteredReviews.length === 0 ? (
-                <div className="py-10 text-center text-sm text-slate-600">No reviews in this category</div>
+                <div className="py-10 text-center text-sm text-ink-muted">No reviews in this category</div>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col divide-y divide-hairline">
                   {filteredReviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="rounded-2xl border border-blue-900/30 bg-blue-950/20 p-5 transition-all hover:border-blue-800/40 hover:bg-blue-950/30"
-                    >
-                      <div className="mb-3 flex items-start justify-between gap-3">
+                    <div key={review.id} id={`review-${review.id}`} className="scroll-mt-28 py-4 first:pt-0">
+                      <div className="mb-2 flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-bold text-white">{review.businessType}</h3>
-                          <p className="text-xs text-slate-500">Verified review · anonymous</p>
+                          <h3 className="font-serif font-semibold text-ink">{review.businessType}</h3>
+                          <p className="text-xs text-ink-muted">Verified review — anonymous</p>
                         </div>
                         <div className="shrink-0 text-right">
                           <StarDisplay rating={review.rating} />
-                          <p className="mt-1 text-xs text-slate-600">{review.date}</p>
+                          <p className="mt-1 text-xs text-ink-muted">{review.date}</p>
                         </div>
                       </div>
                       {review.notes && (
-                        <p className="mb-3 border-l-2 border-blue-800/40 pl-3 text-sm leading-relaxed text-slate-400">
+                        <p className="mb-3 border-l-2 border-hairline pl-3 text-sm leading-relaxed text-ink-muted">
                           &ldquo;{review.notes}&rdquo;
                         </p>
                       )}
-                      <div className="mb-3 flex flex-wrap gap-1.5">
+                      <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1">
                         {review.tags.map((tag) => {
                           const isNeg = negativeSet.has(tag);
                           return (
-                            <span
-                              key={tag}
-                              className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                                isNeg
-                                  ? "border-red-800/30 bg-red-950/40 text-red-400"
-                                  : "border-emerald-800/30 bg-emerald-950/40 text-emerald-400"
-                              }`}
-                            >
-                              {isNeg ? "✕" : "✓"} {tag}
+                            <span key={tag} className={`border-l-2 pl-1.5 text-xs font-medium ${isNeg ? "border-rust text-rust" : "border-sage text-sage"}`}>
+                              {tag}
                             </span>
                           );
                         })}
@@ -483,12 +497,12 @@ function ProfileContent() {
 
                       {/* Dispute this review */}
                       {disputedReviews[review.id] ? (
-                        <div className="rounded-lg border border-yellow-700/40 bg-yellow-950/30 px-3 py-2 text-xs text-yellow-400">
-                          <span className="font-bold">Dispute submitted.</span> Repflip will review this within 3–5 business days.
+                        <div className="border border-rust bg-plum px-3 py-2 text-xs text-rust">
+                          <span className="font-semibold">Dispute submitted.</span> Repflip will review this within 3–5 business days.
                         </div>
                       ) : disputeOpenId === review.id ? (
-                        <div className="rounded-lg border border-blue-900/40 bg-blue-950/30 p-3">
-                          <label className="mb-1.5 block text-xs font-semibold text-slate-400">
+                        <div className="border border-hairline bg-plum p-3">
+                          <label className="mb-1.5 block text-xs font-medium text-ink-muted">
                             Why is this review inaccurate?
                           </label>
                           <textarea
@@ -497,14 +511,14 @@ function ProfileContent() {
                             rows={3}
                             autoFocus
                             placeholder="Describe what's wrong with this review — we'll ask the business to respond."
-                            className="w-full resize-none rounded-lg border border-blue-900/40 bg-blue-950/40 p-2.5 text-sm text-white placeholder-slate-600 outline-none transition-colors focus:border-blue-600/60"
+                            className="w-full resize-none border border-hairline bg-plum-sunken p-2.5 text-sm text-ink placeholder-ink-muted outline-none transition-colors focus:border-gold"
                           />
                           <div className="mt-2 flex gap-2">
                             <button
                               type="button"
                               onClick={() => submitDispute(review.id)}
                               disabled={!disputeReason.trim() || disputeSubmitting}
-                              className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="rounded bg-gold px-4 py-1.5 text-xs font-semibold text-plum transition-colors hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               {disputeSubmitting ? "Submitting…" : "Submit dispute"}
                             </button>
@@ -512,7 +526,7 @@ function ProfileContent() {
                               type="button"
                               onClick={cancelDispute}
                               disabled={disputeSubmitting}
-                              className="rounded-lg border border-blue-900/40 px-4 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-white"
+                              className="rounded border border-hairline px-4 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
                             >
                               Cancel
                             </button>
@@ -522,7 +536,7 @@ function ProfileContent() {
                         <button
                           type="button"
                           onClick={() => openDispute(review.id)}
-                          className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-red-400"
+                          className="flex items-center gap-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-rust"
                         >
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -537,118 +551,119 @@ function ProfileContent() {
             </div>
 
             {/* How Your Data Is Protected */}
-            <div className="glass-card rounded-2xl p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <span className="text-lg">🔒</span>
-                <h2 className="text-lg font-black text-white">How Your Data Is Protected</h2>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex gap-3 rounded-xl border border-blue-900/30 bg-blue-950/20 p-4">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-blue-900/40 bg-blue-950/40 text-base">
-                    🚫
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Your score is never public</div>
-                    <div className="mt-0.5 text-xs leading-relaxed text-slate-400">Your Repflip score is private. It is never displayed publicly or shared with anyone outside of participating businesses.</div>
-                  </div>
+            <div className="border border-hairline bg-plum-raised p-6">
+              <h2 className="mb-4 font-serif text-lg font-semibold text-ink">How your data is protected</h2>
+              <div className="flex flex-col divide-y divide-hairline">
+                <div className="py-3 first:pt-0">
+                  <div className="text-sm font-semibold text-ink">Your score is never public</div>
+                  <div className="mt-0.5 text-xs leading-relaxed text-ink-muted">Your Repflip score is private. It is never displayed publicly or shared with anyone outside of participating businesses.</div>
                 </div>
-                <div className="flex gap-3 rounded-xl border border-blue-900/30 bg-blue-950/20 p-4">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-blue-900/40 bg-blue-950/40 text-base">
-                    ✅
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Only verified businesses can view your score</div>
-                    <div className="mt-0.5 text-xs leading-relaxed text-slate-400">Only verified, paying businesses on the Repflip platform can look up your score — and only when they have an active booking relationship.</div>
-                  </div>
+                <div className="py-3">
+                  <div className="text-sm font-semibold text-ink">Only verified businesses can view your score</div>
+                  <div className="mt-0.5 text-xs leading-relaxed text-ink-muted">Only verified, paying businesses on the Repflip platform can look up your score, and only when they have an active booking relationship.</div>
                 </div>
-                <div className="flex gap-3 rounded-xl border border-blue-900/30 bg-blue-950/20 p-4">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-blue-900/40 bg-blue-950/40 text-base">
-                    🕶️
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white">Business names are never revealed</div>
-                    <div className="mt-0.5 text-xs leading-relaxed text-slate-400">You will never know which specific company reviewed you — only the business category (e.g. "Personal Training") is shown. Reviews are always anonymous.</div>
-                  </div>
+                <div className="py-3">
+                  <div className="text-sm font-semibold text-ink">Business names are never revealed</div>
+                  <div className="mt-0.5 text-xs leading-relaxed text-ink-muted">You will never know which specific company reviewed you — only the business category (e.g. &quot;Personal Training&quot;) is shown. Reviews are always anonymous.</div>
                 </div>
               </div>
             </div>
 
             {/* Points Breakdown */}
-            <div className="glass-card relative overflow-hidden rounded-2xl p-6">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-600/8 blur-2xl pointer-events-none" />
-              <h2 className="mb-4 text-lg font-black text-white">Points Breakdown</h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-emerald-900/30 bg-emerald-950/20 p-4 text-center">
-                  <div className="text-xl font-black text-emerald-400">{breakdown.earned.toLocaleString()}</div>
-                  <div className="mt-0.5 text-xs text-slate-500">Total Earned</div>
+            <div className="border border-hairline bg-plum-raised p-6">
+              <h2 className="mb-4 font-serif text-lg font-semibold text-ink">Points breakdown</h2>
+              <div className="flex flex-col divide-y divide-hairline">
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-sm text-ink-muted">Total earned</span>
+                  <span className="text-sm font-semibold text-sage">{breakdown.earned.toLocaleString()}</span>
                 </div>
-                <div className="rounded-xl border border-red-900/30 bg-red-950/20 p-4 text-center">
-                  <div className="text-xl font-black text-red-400">{breakdown.spent.toLocaleString()}</div>
-                  <div className="mt-0.5 text-xs text-slate-500">Total Spent</div>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-sm text-ink-muted">Total spent</span>
+                  <span className="text-sm font-semibold text-rust">{breakdown.spent.toLocaleString()}</span>
                 </div>
-                <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-4 text-center">
-                  <div className="text-xl font-black text-white">{consumer.points.toLocaleString()}</div>
-                  <div className="mt-0.5 text-xs text-slate-500">Balance</div>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-sm text-ink-muted">Balance</span>
+                  <span className="text-sm font-semibold text-ink">{points.toLocaleString()}</span>
                 </div>
-                <div className="rounded-xl border border-yellow-900/30 bg-yellow-950/20 p-4 text-center">
-                  <div className="text-xl font-black text-yellow-400">
-                    ${(consumer.points / 100).toFixed(2)}
-                  </div>
-                  <div className="mt-0.5 text-xs text-slate-500">$ Value</div>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-sm text-ink-muted">Dollar value</span>
+                  <span className="text-sm font-semibold text-gold">${(points / 100).toFixed(2)}</span>
                 </div>
               </div>
-              <p className="mt-3 text-center text-xs text-slate-600">100 points = $1.00 · Points never expire</p>
+              <p className="mt-3 text-xs text-ink-muted">100 points = $1.00. Points never expire.</p>
             </div>
 
             {/* How to Improve */}
-            <div className="glass-card rounded-2xl p-6">
-              <h2 className="mb-4 text-lg font-black text-white">💡 How to Improve Your Score</h2>
-              <div className="flex flex-col gap-3">
+            <div className="border border-hairline bg-plum-raised p-6">
+              <h2 className="mb-4 font-serif text-lg font-semibold text-ink">How to improve your score</h2>
+              <div className="flex flex-col divide-y divide-hairline">
                 {TIPS.map((tip) => (
-                  <div
-                    key={tip.title}
-                    className="flex gap-4 rounded-xl border border-blue-900/30 bg-blue-950/20 p-4"
-                  >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-blue-900/40 bg-blue-950/40 text-xl">
-                      {tip.emoji}
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-white">{tip.title}</div>
-                      <div className="mt-0.5 text-xs leading-relaxed text-slate-400">{tip.desc}</div>
-                    </div>
+                  <div key={tip.title} className="py-3 first:pt-0">
+                    <div className="text-sm font-semibold text-ink">{tip.title}</div>
+                    <div className="mt-0.5 text-xs leading-relaxed text-ink-muted">{tip.desc}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Rewards CTA */}
-            <div className="glass-card relative overflow-hidden rounded-2xl p-6">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-yellow-500/10 blur-2xl pointer-events-none" />
+            <div className="border border-hairline bg-plum-raised p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="text-xl">🏅</span>
-                    <span className="text-sm font-bold text-white">
-                      {consumer.points.toLocaleString()} points ·{" "}
-                      <span className="text-emerald-400">${(consumer.points / 100).toFixed(2)}</span>
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm font-semibold text-ink">
+                    {points.toLocaleString()} points <span className="text-gold">(${(points / 100).toFixed(2)})</span>
+                  </p>
+                  <p className="mt-1 text-sm text-ink-muted">
                     Redeem for discounts, gift cards, and monthly prize draws.
                     {consumer.tier !== "Platinum" && " Keep earning to reach the next tier."}
                   </p>
                 </div>
                 <Link
                   href="/rewards"
-                  className="shrink-0 rounded-xl border border-yellow-600/40 bg-yellow-950/30 px-5 py-2.5 text-sm font-bold text-yellow-400 transition-all hover:bg-yellow-900/40 hover:text-yellow-300"
+                  className="shrink-0 rounded border border-hairline px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-gold hover:text-gold"
                 >
-                  View Rewards
+                  View rewards
                 </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Share Score Modal */}
+      {shareOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#221727]/90 p-6"
+          onClick={() => setShareOpen(false)}
+        >
+          <div className="relative w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShareOpen(false)}
+              className="absolute -right-3 -top-3 z-10 flex h-8 w-8 items-center justify-center border border-hairline bg-plum text-ink transition-colors hover:border-gold hover:text-gold"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <ShareCard name={consumer.name} tier={consumer.tier} score={consumer.score} streak={cleanStreak} />
+            <canvas ref={shareCanvasRef} className="hidden" />
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={handleDownloadShareCard}
+                className="flex-1 rounded bg-gold py-3 text-sm font-semibold text-plum transition-colors hover:bg-gold-deep"
+              >
+                Download PNG
+              </button>
+              <button
+                onClick={handleCopyShareLink}
+                className="flex-1 rounded border border-hairline py-3 text-sm font-semibold text-ink transition-colors hover:border-gold hover:text-gold"
+              >
+                {linkCopied ? "Copied" : "Copy link"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -657,8 +672,8 @@ export default function ProfilePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#020810]">
-          <div className="text-slate-500">Loading profile…</div>
+        <div className="flex min-h-screen items-center justify-center bg-plum">
+          <div className="text-ink-muted">Loading profile…</div>
         </div>
       }
     >
