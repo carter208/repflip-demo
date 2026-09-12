@@ -20,3 +20,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# persona-sprint: generated persona data stays local (generate_scaffold.py itself is still tracked)
+persona-sprint/personas/personas.jsonl
+persona-sprint/personas/scaffold.jsonl
+persona-sprint/personas/batches/
