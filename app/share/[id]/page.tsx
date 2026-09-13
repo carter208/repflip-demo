@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { CONSUMERS, getCleanStreak } from "@/lib/data";
 import { drawScoreCard } from "@/lib/shareCard";
+import { isShareLinkActive } from "@/lib/shareLink";
 import ShareCard from "@/components/ShareCard";
 
 export default function SharePage() {
@@ -12,11 +13,42 @@ export default function SharePage() {
   const consumer = CONSUMERS.find((c) => c.id === params?.id);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Share-link status is only known client-side (localStorage), so start
+  // "checking" and resolve after mount rather than assuming active.
+  const [linkStatus, setLinkStatus] = useState<"checking" | "active" | "inactive">("checking");
+
+  useEffect(() => {
+    if (!consumer) return;
+    setLinkStatus(isShareLinkActive(consumer.id) ? "active" : "inactive");
+  }, [consumer]);
+
   if (!consumer) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-plum px-6 text-center">
         <div>
           <p className="mb-2 font-serif text-2xl font-semibold text-ink">Score card not found</p>
+          <Link href="/" className="text-gold transition-colors hover:text-gold-deep">
+            ← Back to Repflip
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (linkStatus === "checking") {
+    return <div className="min-h-screen bg-plum" />;
+  }
+
+  if (linkStatus === "inactive") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-plum px-6 text-center">
+        <div className="max-w-sm border border-hairline bg-plum-raised p-8">
+          <p className="mb-2 font-serif text-xl font-semibold text-ink">This link isn&apos;t available</p>
+          <p className="mb-6 text-sm leading-relaxed text-ink-muted">
+            This score card is private, and either was never shared or the link was revoked or has
+            expired. Repflip scores are private by default — only shared publicly when a consumer
+            explicitly chooses to.
+          </p>
           <Link href="/" className="text-gold transition-colors hover:text-gold-deep">
             ← Back to Repflip
           </Link>

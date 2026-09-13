@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { CONSUMERS, TIER_CONFIG, getTierProgress, getCleanStreak, NEGATIVE_TAGS, FREEZE_COST, type Consumer } from "@/lib/data";
 import { useScoreReveal } from "@/lib/useScoreReveal";
 import { drawScoreCard } from "@/lib/shareCard";
+import { SHARE_LINK_EXPIRY_DAYS, isShareLinkActive, createShareLink, revokeShareLink } from "@/lib/shareLink";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import ShareCard from "@/components/ShareCard";
 
@@ -86,9 +87,14 @@ function ProfileContent() {
   const [newReviewBanner, setNewReviewBanner] = useState<{ businessName: string; reviewId: string } | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [shareLinkActive, setShareLinkActive] = useState(false);
   const shareCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const cleanStreak = getCleanStreak(consumer.reviews);
+
+  useEffect(() => {
+    setShareLinkActive(isShareLinkActive(consumer.id));
+  }, [consumer.id]);
 
   useEffect(() => {
     setPoints(consumer.points);
@@ -170,6 +176,17 @@ function ProfileContent() {
     } catch {
       // Clipboard access denied — button label simply won't confirm.
     }
+  };
+
+  const handleCreateShareLink = () => {
+    createShareLink(consumer.id);
+    setShareLinkActive(true);
+  };
+
+  const handleRevokeShareLink = () => {
+    revokeShareLink(consumer.id);
+    setShareLinkActive(false);
+    setShareOpen(false);
   };
 
   const negativeSet = new Set(NEGATIVE_TAGS);
@@ -555,8 +572,8 @@ function ProfileContent() {
               <h2 className="mb-4 font-serif text-lg font-semibold text-ink">How your data is protected</h2>
               <div className="flex flex-col divide-y divide-hairline">
                 <div className="py-3 first:pt-0">
-                  <div className="text-sm font-semibold text-ink">Your score is never public</div>
-                  <div className="mt-0.5 text-xs leading-relaxed text-ink-muted">Your Repflip score is private. It is never displayed publicly or shared with anyone outside of participating businesses.</div>
+                  <div className="text-sm font-semibold text-ink">Private by default, shareable only if you choose to</div>
+                  <div className="mt-0.5 text-xs leading-relaxed text-ink-muted">Your Repflip score is never shown publicly or to anyone outside of participating businesses — unless you explicitly create a shareable link yourself. Links you create expire after {SHARE_LINK_EXPIRY_DAYS} days and can be revoked anytime.</div>
                 </div>
                 <div className="py-3">
                   <div className="text-sm font-semibold text-ink">Only verified businesses can view your score</div>
@@ -645,22 +662,63 @@ function ProfileContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <ShareCard name={consumer.name} tier={consumer.tier} score={consumer.score} streak={cleanStreak} />
-            <canvas ref={shareCanvasRef} className="hidden" />
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={handleDownloadShareCard}
-                className="flex-1 rounded bg-gold py-3 text-sm font-semibold text-plum transition-colors hover:bg-gold-deep"
-              >
-                Download PNG
-              </button>
-              <button
-                onClick={handleCopyShareLink}
-                className="flex-1 rounded border border-hairline py-3 text-sm font-semibold text-ink transition-colors hover:border-gold hover:text-gold"
-              >
-                {linkCopied ? "Copied" : "Copy link"}
-              </button>
-            </div>
+
+            {shareLinkActive ? (
+              <>
+                <ShareCard name={consumer.name} tier={consumer.tier} score={consumer.score} streak={cleanStreak} />
+                <canvas ref={shareCanvasRef} className="hidden" />
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={handleDownloadShareCard}
+                    className="flex-1 rounded bg-gold py-3 text-sm font-semibold text-plum transition-colors hover:bg-gold-deep"
+                  >
+                    Download PNG
+                  </button>
+                  <button
+                    onClick={handleCopyShareLink}
+                    className="flex-1 rounded border border-hairline py-3 text-sm font-semibold text-ink transition-colors hover:border-gold hover:text-gold"
+                  >
+                    {linkCopied ? "Copied" : "Copy link"}
+                  </button>
+                </div>
+                <div className="mt-3 border border-hairline bg-plum-raised p-3">
+                  <p className="mb-2 text-xs leading-relaxed text-ink-muted">
+                    This link is public — anyone who has it can view this score card, no login
+                    required. It expires in {SHARE_LINK_EXPIRY_DAYS} days.
+                  </p>
+                  <button
+                    onClick={handleRevokeShareLink}
+                    className="w-full rounded border border-rust py-2 text-xs font-semibold text-rust transition-colors hover:bg-rust hover:text-plum"
+                  >
+                    Revoke this link
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="border border-hairline bg-plum-raised p-6">
+                <h3 className="mb-2 font-serif text-lg font-semibold text-ink">Create a shareable link?</h3>
+                <p className="mb-5 text-sm leading-relaxed text-ink-muted">
+                  This creates a <span className="text-ink">public</span> link — anyone with the
+                  URL can view {consumer.name.split(" ")[0]}&apos;s score card, no login required.
+                  Your score stays private otherwise, shown only to verified businesses. The link
+                  expires after {SHARE_LINK_EXPIRY_DAYS} days, and you can revoke it anytime.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCreateShareLink}
+                    className="flex-1 rounded bg-gold py-2.5 text-sm font-semibold text-plum transition-colors hover:bg-gold-deep"
+                  >
+                    Create shareable link
+                  </button>
+                  <button
+                    onClick={() => setShareOpen(false)}
+                    className="flex-1 rounded border border-hairline py-2.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
