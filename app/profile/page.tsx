@@ -75,10 +75,35 @@ function ProfileContent() {
   const [claiming, setClaiming] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "positive" | "concerns">("all");
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [disputeOpenId, setDisputeOpenId] = useState<string | null>(null);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
+  const [disputedReviews, setDisputedReviews] = useState<Record<string, string>>({});
 
   const handleClaim = () => {
     setClaiming(true);
     setTimeout(() => { setClaiming(false); setClaimed(true); }, 1000);
+  };
+
+  const openDispute = (reviewId: string) => {
+    setDisputeOpenId(reviewId);
+    setDisputeReason("");
+  };
+
+  const cancelDispute = () => {
+    setDisputeOpenId(null);
+    setDisputeReason("");
+  };
+
+  const submitDispute = (reviewId: string) => {
+    if (!disputeReason.trim()) return;
+    setDisputeSubmitting(true);
+    setTimeout(() => {
+      setDisputedReviews((prev) => ({ ...prev, [reviewId]: disputeReason.trim() }));
+      setDisputeSubmitting(false);
+      setDisputeOpenId(null);
+      setDisputeReason("");
+    }, 800);
   };
 
   const allTags = consumer.reviews.flatMap((r) => r.tags);
@@ -464,7 +489,7 @@ function ProfileContent() {
                           &ldquo;{review.notes}&rdquo;
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="mb-3 flex flex-wrap gap-1.5">
                         {review.tags.map((tag) => {
                           const isNeg = negativeSet.has(tag);
                           return (
@@ -481,6 +506,56 @@ function ProfileContent() {
                           );
                         })}
                       </div>
+
+                      {/* Dispute this review */}
+                      {disputedReviews[review.id] ? (
+                        <div className="rounded-lg border border-yellow-700/40 bg-yellow-950/30 px-3 py-2 text-xs text-yellow-400">
+                          <span className="font-bold">Dispute submitted.</span> Repflip will review this within 3–5 business days.
+                        </div>
+                      ) : disputeOpenId === review.id ? (
+                        <div className="rounded-lg border border-blue-900/40 bg-blue-950/30 p-3">
+                          <label className="mb-1.5 block text-xs font-semibold text-slate-400">
+                            Why is this review inaccurate?
+                          </label>
+                          <textarea
+                            value={disputeReason}
+                            onChange={(e) => setDisputeReason(e.target.value)}
+                            rows={3}
+                            autoFocus
+                            placeholder="Describe what's wrong with this review — we'll ask the business to respond."
+                            className="w-full resize-none rounded-lg border border-blue-900/40 bg-blue-950/40 p-2.5 text-sm text-white placeholder-slate-600 outline-none transition-colors focus:border-blue-600/60"
+                          />
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => submitDispute(review.id)}
+                              disabled={!disputeReason.trim() || disputeSubmitting}
+                              className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {disputeSubmitting ? "Submitting…" : "Submit dispute"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelDispute}
+                              disabled={disputeSubmitting}
+                              className="rounded-lg border border-blue-900/40 px-4 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-white"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => openDispute(review.id)}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-red-400"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                          Dispute this review
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

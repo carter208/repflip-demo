@@ -61,7 +61,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-20 text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-800/40 bg-blue-950/40 px-4 py-1.5 text-sm text-blue-300 backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-            Now in Private Beta — Limited Founding Memberships Available
+            Now in Private Beta
           </div>
 
           <h1 className="mb-6 text-5xl font-black leading-tight tracking-tight text-white md:text-7xl">
@@ -286,7 +286,7 @@ export default function LandingPage() {
             <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-cyan-600/8 blur-[80px]" />
             <div className="relative">
               <span className="mb-4 inline-block rounded-full border border-yellow-600/40 bg-yellow-950/30 px-3 py-1 text-xs font-bold uppercase tracking-widest text-yellow-400">
-                Founding Member Access
+                Early Access
               </span>
               <h2 className="mb-4 text-3xl font-black text-white md:text-5xl">
                 Join the waitlist.
@@ -294,8 +294,8 @@ export default function LandingPage() {
                 <span className="gradient-text">Shape the platform.</span>
               </h2>
               <p className="mb-8 text-slate-400">
-                Founding businesses get free access for the first year, locked-in pricing forever,
-                and direct input on platform features. Only 75 spots available in the Treasure Valley.
+                Businesses that join during early access get free access for the first year,
+                locked-in pricing forever, and direct input on platform features.
               </p>
 
               {submitted ? (
@@ -303,8 +303,8 @@ export default function LandingPage() {
                   <div className="mb-2 text-2xl">🎉</div>
                   <p className="text-lg font-bold text-white">You&apos;re on the list!</p>
                   <p className="mt-1 text-sm text-slate-400">
-                    We&apos;ll reach out at <span className="text-blue-400">{email}</span> when your
-                    founding membership is ready.
+                    We&apos;ll reach out at <span className="text-blue-400">{email}</span> when
+                    early access is ready for you.
                   </p>
                 </div>
               ) : (
@@ -321,7 +321,7 @@ export default function LandingPage() {
                     type="submit"
                     className="rounded-xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-500 hover:scale-[1.02] whitespace-nowrap"
                   >
-                    Claim My Spot
+                    Join the Waitlist
                   </button>
                 </form>
               )}
