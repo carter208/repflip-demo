@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getScoreBreakdown, SCORE_BASELINE, type Review } from "@/lib/data";
 
 export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
@@ -9,9 +10,15 @@ export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
 
   return (
     <div className="rounded-2xl border border-blue-800/40 bg-blue-950/30 p-4">
-      <p className="mb-3 text-sm font-bold text-white">
+      <p className="mb-1 text-sm font-bold text-white">
         Score breakdown <span className="font-normal text-slate-500">— starts at {SCORE_BASELINE}, adjusted by verified reviews</span>
       </p>
+      <Link
+        href="/how-scoring-works"
+        className="mb-3 inline-block text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
+      >
+        See how this is calculated →
+      </Link>
 
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between rounded-lg bg-blue-950/50 px-3 py-1.5">
