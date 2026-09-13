@@ -83,14 +83,19 @@ function ProfileContent() {
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
   const [disputedReviews, setDisputedReviews] = useState<Record<string, string>>({});
   const [points, setPoints] = useState(consumer.points);
-  const [freezeActive, setFreezeActive] = useState(false);
+  const [frozenReviewIds, setFrozenReviewIds] = useState<string[]>([]);
   const [newReviewBanner, setNewReviewBanner] = useState<{ businessName: string; reviewId: string } | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [shareLinkActive, setShareLinkActive] = useState(false);
   const shareCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  const cleanStreak = getCleanStreak(consumer.reviews);
+  const cleanStreak = getCleanStreak(
+    consumer.reviews.map((r) => ({
+      ...r,
+      protectedByFreeze: r.protectedByFreeze || frozenReviewIds.includes(r.id),
+    }))
+  );
 
   useEffect(() => {
     setShareLinkActive(isShareLinkActive(consumer.id));
@@ -98,7 +103,7 @@ function ProfileContent() {
 
   useEffect(() => {
     setPoints(consumer.points);
-    setFreezeActive(false);
+    setFrozenReviewIds([]);
   }, [consumer.id, consumer.points]);
 
   useEffect(() => {
@@ -150,10 +155,10 @@ function ProfileContent() {
     }, 800);
   };
 
-  const handlePurchaseFreeze = () => {
-    if (freezeActive || points < FREEZE_COST) return;
+  const handleFreezeReview = (reviewId: string) => {
+    if (frozenReviewIds.includes(reviewId) || points < FREEZE_COST) return;
     setPoints((p) => p - FREEZE_COST);
-    setFreezeActive(true);
+    setFrozenReviewIds((prev) => [...prev, reviewId]);
   };
 
   const handleDownloadShareCard = async () => {
@@ -313,7 +318,7 @@ function ProfileContent() {
                 )}
               </div>
 
-              {/* Clean Streak + Streak Freeze */}
+              {/* Clean Streak */}
               <div className="mb-4 border border-hairline">
                 <div className="flex items-center justify-between px-3 py-2.5 text-sm">
                   <span className="text-ink-muted">Clean streak</span>
@@ -326,25 +331,18 @@ function ProfileContent() {
                     ? "No active streak yet — your next great review starts one."
                     : "Consecutive positive reviews, no red flags."}
                 </p>
-                <div className="flex items-center justify-between gap-3 border-t border-hairline px-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="text-sm text-ink-muted">Streak freeze</p>
-                    <p className="text-xs text-ink-muted">
-                      {freezeActive ? "Active — your next negative review won't break your streak." : "Protects your streak from your next negative review."}
-                    </p>
-                  </div>
-                  {freezeActive ? (
-                    <span className="shrink-0 text-sm font-semibold text-sage">Active</span>
-                  ) : (
-                    <button
-                      onClick={handlePurchaseFreeze}
-                      disabled={points < FREEZE_COST}
-                      className="shrink-0 rounded bg-gold px-3 py-1.5 text-xs font-semibold text-plum transition-colors hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Buy — {FREEZE_COST} pts
-                    </button>
-                  )}
-                </div>
+                {frozenReviewIds.length === 0 ? (
+                  <p className="border-t border-hairline px-3 py-2.5 text-xs text-ink-muted">
+                    Disputing a review you believe is wrong? You can protect your streak from it
+                    while the dispute is pending — see Review history below.
+                  </p>
+                ) : (
+                  <p className="border-t border-hairline px-3 py-2.5 text-xs text-sage">
+                    {frozenReviewIds.length} review{frozenReviewIds.length === 1 ? "" : "s"} under
+                    dispute {frozenReviewIds.length === 1 ? "is" : "are"} currently protected from
+                    breaking this streak.
+                  </p>
+                )}
               </div>
 
               {/* Stats */}
@@ -560,6 +558,35 @@ function ProfileContent() {
                           </svg>
                           Dispute this review
                         </button>
+                      )}
+
+                      {/* Streak freeze — only offered once a review is under dispute, and only if it would otherwise break the streak */}
+                      {disputedReviews[review.id] && review.tags.some((t) => negativeSet.has(t)) && (
+                        frozenReviewIds.includes(review.id) ? (
+                          <div className="mt-2 border border-sage bg-plum px-3 py-2 text-xs text-sage">
+                            <span className="font-semibold">Streak protected while disputed</span> — {FREEZE_COST} pts spent.
+                            This review is still visible above, unchanged — freezing only shields your
+                            streak counter, it does not hide, remove, or alter the review itself.
+                          </div>
+                        ) : (
+                          <div className="mt-2 border border-hairline bg-plum p-3">
+                            <p className="mb-2 text-xs leading-relaxed text-ink-muted">
+                              This review is under dispute. For {FREEZE_COST} pts you can protect your
+                              streak from it while the dispute is pending. This does{" "}
+                              <span className="font-semibold text-ink">not</span> hide, remove, or change
+                              the review — it stays visible above exactly as submitted; only your streak
+                              counter is shielded until the dispute is resolved.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => handleFreezeReview(review.id)}
+                              disabled={points < FREEZE_COST}
+                              className="w-full rounded bg-gold px-3 py-1.5 text-xs font-semibold text-plum transition-colors hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              Protect streak while disputed — {FREEZE_COST} pts
+                            </button>
+                          </div>
+                        )
                       )}
                     </div>
                   ))}
