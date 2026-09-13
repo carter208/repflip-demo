@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CONSUMERS, TIER_CONFIG, type Consumer } from "@/lib/data";
+import ScoreBreakdown from "@/components/ScoreBreakdown";
 // TIER_CONFIG used for header glow and tier badge styling
 
 function StarRow({ rating }: { rating: number }) {
@@ -81,14 +82,6 @@ function TrafficLight({ score, hasReviews }: { score: number; hasReviews: boolea
 function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubmitReview: () => void }) {
   const cfg = TIER_CONFIG[consumer.tier];
   const hasReviews = consumer.reviews.length > 0;
-  const positiveTags = consumer.reviews
-    .flatMap((r) => r.tags)
-    .filter((t) => !["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"].includes(t));
-  const negativeTags = consumer.reviews
-    .flatMap((r) => r.tags)
-    .filter((t) => ["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"].includes(t));
-  const uniquePos = Array.from(new Set(positiveTags));
-  const uniqueNeg = Array.from(new Set(negativeTags));
 
   return (
     <div className="glass-card overflow-hidden rounded-2xl shadow-card-glow">
@@ -106,6 +99,13 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
           <TrafficLight score={consumer.score} hasReviews={hasReviews} />
         </div>
       </div>
+
+      {/* Score Breakdown — right under the score itself, real visual weight */}
+      {hasReviews && (
+        <div className="p-6 pb-0">
+          <ScoreBreakdown reviews={consumer.reviews} />
+        </div>
+      )}
 
       {/* Consumer Info */}
       <div className="relative overflow-hidden p-6 pb-0">
@@ -153,26 +153,6 @@ function ConsumerCard({ consumer, onSubmitReview }: { consumer: Consumer; onSubm
             <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">
               <div className="text-xl font-black" style={{ color: cfg.color }}>{consumer.points.toLocaleString()}</div>
               <div className="text-xs text-slate-500 mt-0.5">Points</div>
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Behavioral Tags</p>
-            <div className="flex flex-wrap gap-1.5">
-              {uniquePos.slice(0, 4).map((tag) => (
-                <span key={tag} className="rounded-full bg-emerald-950/50 border border-emerald-800/40 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-                  ✓ {tag}
-                </span>
-              ))}
-              {uniqueNeg.map((tag) => (
-                <span key={tag} className="rounded-full bg-red-950/50 border border-red-800/40 px-2.5 py-0.5 text-xs font-medium text-red-400">
-                  ✕ {tag}
-                </span>
-              ))}
-              {uniquePos.length === 0 && uniqueNeg.length === 0 && (
-                <span className="text-xs text-slate-600">No tags yet</span>
-              )}
             </div>
           </div>
         </div>

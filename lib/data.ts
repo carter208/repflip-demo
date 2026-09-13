@@ -42,6 +42,49 @@ export function getTierFromScore(score: number): Tier {
   return "Bronze";
 }
 
+// Every consumer's reputation score starts at this baseline and is adjusted
+// up or down by the weight of every behavioral tag across their reviews —
+// see TAG_WEIGHTS / getScoreBreakdown below. The score stored on each
+// Consumer is always computed this way (see deriveScore), so the number
+// shown everywhere in the app is exactly the sum of the tags shown in the
+// breakdown, never a separately hand-set value.
+export const SCORE_BASELINE = 60;
+
+export const TAG_WEIGHTS: Record<string, number> = {
+  "Paid on time": 8,
+  "Clear communicator": 5,
+  "Respectful": 5,
+  "Reliable": 4,
+  "Followed through": 3,
+  "No-show": -8,
+  "Payment dispute": -8,
+  "Difficult to reach": -4,
+  "Aggressive/rude": -12,
+};
+
+export interface ScoreContribution {
+  tag: string;
+  count: number;
+  points: number;
+  positive: boolean;
+}
+
+export function getScoreBreakdown(reviews: Review[]): ScoreContribution[] {
+  const counts: Record<string, number> = {};
+  reviews.forEach((r) => r.tags.forEach((t) => { counts[t] = (counts[t] ?? 0) + 1; }));
+  return Object.entries(counts)
+    .map(([tag, count]) => {
+      const weight = TAG_WEIGHTS[tag] ?? 0;
+      return { tag, count, points: weight * count, positive: weight >= 0 };
+    })
+    .sort((a, b) => Math.abs(b.points) - Math.abs(a.points));
+}
+
+export function deriveScore(reviews: Review[]): number {
+  const adjustment = getScoreBreakdown(reviews).reduce((sum, c) => sum + c.points, 0);
+  return Math.max(0, Math.min(100, SCORE_BASELINE + adjustment));
+}
+
 export const TIER_CONFIG: Record<Tier, { color: string; bg: string; border: string; glow: string; text: string }> = {
   Bronze: {
     color: "#cd7f32",
@@ -73,15 +116,20 @@ export const TIER_CONFIG: Record<Tier, { color: string; bg: string; border: stri
   },
 };
 
+function makeConsumer(
+  base: Omit<Consumer, "score" | "tier">
+): Consumer {
+  const score = deriveScore(base.reviews);
+  return { ...base, score, tier: getTierFromScore(score) };
+}
+
 export const CONSUMERS: Consumer[] = [
-  {
+  makeConsumer({
     id: "1",
     name: "Marcus Thompson",
     phone: "(312) 555-0142",
     email: "marcus.t@email.com",
     city: "Boise, ID",
-    score: 94,
-    tier: "Platinum",
     points: 4820,
     memberSince: "Jan 2024",
     reviews: [
@@ -112,15 +160,13 @@ export const CONSUMERS: Consumer[] = [
         date: "Jan 5, 2026",
       },
     ],
-  },
-  {
+  }),
+  makeConsumer({
     id: "2",
     name: "Sarah Chen",
     phone: "(415) 555-0287",
     email: "s.chen@email.com",
     city: "Nampa, ID",
-    score: 81,
-    tier: "Gold",
     points: 2140,
     memberSince: "Mar 2024",
     reviews: [
@@ -151,15 +197,13 @@ export const CONSUMERS: Consumer[] = [
         date: "Dec 10, 2025",
       },
     ],
-  },
-  {
+  }),
+  makeConsumer({
     id: "3",
     name: "DeShawn Williams",
     phone: "(713) 555-0093",
     email: "deshawn.w@email.com",
     city: "Meridian, ID",
-    score: 62,
-    tier: "Silver",
     points: 880,
     memberSince: "Jun 2024",
     reviews: [
@@ -182,15 +226,13 @@ export const CONSUMERS: Consumer[] = [
         date: "Jan 30, 2026",
       },
     ],
-  },
-  {
+  }),
+  makeConsumer({
     id: "4",
     name: "Rebecca Okafor",
     phone: "(202) 555-0318",
     email: "r.okafor@email.com",
     city: "Eagle, ID",
-    score: 38,
-    tier: "Bronze",
     points: 210,
     memberSince: "Sep 2024",
     reviews: [
@@ -213,5 +255,5 @@ export const CONSUMERS: Consumer[] = [
         date: "Nov 18, 2025",
       },
     ],
-  },
+  }),
 ];

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CONSUMERS, TIER_CONFIG, type Consumer, type Tier } from "@/lib/data";
+import ScoreBreakdown from "@/components/ScoreBreakdown";
 
 // Points breakdown data (100 pts = $1)
 const POINTS_BREAKDOWN: Record<string, { earned: number; spent: number }> = {
@@ -106,14 +107,7 @@ function ProfileContent() {
     }, 800);
   };
 
-  const allTags = consumer.reviews.flatMap((r) => r.tags);
   const negativeSet = new Set(["No-show", "Payment dispute", "Difficult to reach", "Aggressive/rude"]);
-  const positiveTagCounts: Record<string, number> = {};
-  const negativeTagCounts: Record<string, number> = {};
-  allTags.forEach((t) => {
-    if (negativeSet.has(t)) negativeTagCounts[t] = (negativeTagCounts[t] ?? 0) + 1;
-    else positiveTagCounts[t] = (positiveTagCounts[t] ?? 0) + 1;
-  });
 
   const avgRating =
     consumer.reviews.length > 0
@@ -224,6 +218,11 @@ function ProfileContent() {
                 <ScoreCircle score={consumer.score} tier={consumer.tier} />
               </div>
 
+              {/* Score Breakdown — right under the score itself, real visual weight */}
+              <div className="mb-5">
+                <ScoreBreakdown reviews={consumer.reviews} />
+              </div>
+
               {/* Tier Badge */}
               <div
                 className="mb-3 flex items-center justify-center gap-2 rounded-xl border py-2.5"
@@ -292,31 +291,6 @@ function ProfileContent() {
                     {consumer.reviews.length > 0 ? avgRating.toFixed(1) : "—"}
                   </div>
                   <div className="text-xs text-slate-500">Avg Rating</div>
-                </div>
-              </div>
-
-              {/* Top Tags */}
-              <div className="mb-5">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Top Traits</p>
-                <div className="flex flex-col gap-1.5">
-                  {Object.entries(positiveTagCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 3)
-                    .map(([tag, count]) => (
-                      <div key={tag} className="flex items-center justify-between rounded-lg border border-emerald-900/30 bg-emerald-950/30 px-3 py-1.5">
-                        <span className="text-xs font-medium text-emerald-400">{tag}</span>
-                        <span className="text-xs text-emerald-600">{count}×</span>
-                      </div>
-                    ))}
-                  {Object.entries(negativeTagCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 2)
-                    .map(([tag, count]) => (
-                      <div key={tag} className="flex items-center justify-between rounded-lg border border-red-900/30 bg-red-950/30 px-3 py-1.5">
-                        <span className="text-xs font-medium text-red-400">{tag}</span>
-                        <span className="text-xs text-red-600">{count}×</span>
-                      </div>
-                    ))}
                 </div>
               </div>
 
