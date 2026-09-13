@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { SCORE_BASELINE, TAG_WEIGHTS, BEHAVIORAL_TAGS, getTierFromScore } from "@/lib/data";
+import { SCORE_BASELINE, TAG_WEIGHTS, BEHAVIORAL_TAGS, TIER_CONFIG, getTierFromScore, type Tier } from "@/lib/data";
 
 // Tier ranges are derived by scanning every possible score against the real
 // getTierFromScore function — never hand-typed — so this page can't drift
 // out of sync with the actual tier thresholds.
 function getTierRanges() {
-  const ranges: { tier: string; min: number; max: number }[] = [];
+  const ranges: { tier: Tier; min: number; max: number }[] = [];
   let currentTier = getTierFromScore(0);
   let start = 0;
   for (let score = 1; score <= 100; score++) {
@@ -20,12 +20,14 @@ function getTierRanges() {
   return ranges;
 }
 
-const TIER_COLORS: Record<string, string> = {
-  Bronze: "#cd7f32",
-  Silver: "#9ca3af",
-  Gold: "#f59e0b",
-  Platinum: "#bae6fd",
-};
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-3 flex items-center gap-2">
+      <div className="h-1.5 w-1.5 bg-gold" />
+      <span className="text-sm font-medium text-gold">{children}</span>
+    </div>
+  );
+}
 
 export default function HowScoringWorksPage() {
   const tierRanges = getTierRanges();
@@ -36,42 +38,38 @@ export default function HowScoringWorksPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#020810]">
+    <div className="min-h-screen bg-plum">
       <div className="mx-auto max-w-3xl px-6 pb-24 pt-32">
-        {/* Label */}
-        <div className="mb-4 flex items-center gap-2">
-          <div className="h-1 w-6 rounded-full bg-blue-600" />
-          <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Methodology</span>
-        </div>
+        <SectionLabel>Methodology</SectionLabel>
 
-        <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight text-white md:text-5xl">
+        <h1 className="mb-4 font-serif text-4xl font-semibold leading-tight text-ink md:text-5xl">
           How your score is calculated
         </h1>
-        <p className="mb-12 max-w-xl text-lg leading-relaxed text-slate-400">
+        <p className="mb-12 max-w-xl text-lg leading-relaxed text-ink-muted">
           No hidden formula. Every reputation score on Repflip is built the same simple way,
           and this page states the whole thing — the same numbers used everywhere else in
           the product.
         </p>
 
         {/* The formula */}
-        <div className="glass-card relative overflow-hidden rounded-2xl p-8 mb-6">
-          <h2 className="mb-3 text-xl font-black text-white">The formula</h2>
-          <p className="mb-4 leading-relaxed text-slate-400">
+        <div className="mb-6 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-3 font-serif text-xl font-semibold text-ink">The formula</h2>
+          <p className="mb-4 leading-relaxed text-ink-muted">
             Your score starts at a fixed baseline, then moves up or down by the weight of
             every behavioral tag on every review you&apos;ve received. The result is clamped
             to the 0–100 range.
           </p>
-          <div className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-4 text-center font-mono text-sm text-blue-300">
+          <div className="border border-hairline bg-plum p-4 text-center font-mono text-sm text-gold">
             score = clamp( {SCORE_BASELINE} + sum of (tag weight × how many times you got that tag), 0, 100 )
           </div>
         </div>
 
         {/* Baseline */}
-        <div className="glass-card relative overflow-hidden rounded-2xl p-8 mb-6">
-          <h2 className="mb-3 text-xl font-black text-white">
+        <div className="mb-6 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-3 font-serif text-xl font-semibold text-ink">
             Why start at {SCORE_BASELINE}?
           </h2>
-          <p className="leading-relaxed text-slate-400">
+          <p className="leading-relaxed text-ink-muted">
             Every consumer starts at {SCORE_BASELINE} — inside the Silver range — before their
             first review. That&apos;s a deliberate middle ground: a brand-new consumer hasn&apos;t
             done anything to earn a top-tier score, but they also haven&apos;t done anything to
@@ -81,43 +79,43 @@ export default function HowScoringWorksPage() {
         </div>
 
         {/* Tag weights table */}
-        <div className="glass-card relative overflow-hidden rounded-2xl p-8 mb-6">
-          <h2 className="mb-1 text-xl font-black text-white">Every tag and its weight</h2>
-          <p className="mb-5 text-sm text-slate-500">
+        <div className="mb-6 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-1 font-serif text-xl font-semibold text-ink">Every tag and its weight</h2>
+          <p className="mb-5 text-sm text-ink-muted">
             This is the complete list — the same weights used in the score breakdown on every profile.
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             {orderedTags.map((tag) => (
               <div
                 key={tag.label}
-                className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${
-                  tag.positive ? "border-emerald-900/30 bg-emerald-950/20" : "border-red-900/30 bg-red-950/20"
+                className={`flex items-center justify-between border-l-2 px-4 py-2.5 ${
+                  tag.positive ? "border-sage" : "border-rust"
                 }`}
               >
-                <span className="text-sm font-medium text-slate-200">{tag.label}</span>
-                <span className={`text-sm font-black ${tag.positive ? "text-emerald-400" : "text-red-400"}`}>
+                <span className="text-sm font-medium text-ink">{tag.label}</span>
+                <span className={`text-sm font-semibold ${tag.positive ? "text-sage" : "text-rust"}`}>
                   {tag.weight > 0 ? "+" : ""}
                   {tag.weight} per review
                 </span>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-xs text-slate-600">
+          <p className="mt-4 text-xs text-ink-muted">
             A tag applies once per review it appears on — three reviews all tagged
             &ldquo;Paid on time&rdquo; count three times.
           </p>
         </div>
 
         {/* Tier thresholds */}
-        <div className="glass-card relative overflow-hidden rounded-2xl p-8 mb-10">
-          <h2 className="mb-5 text-xl font-black text-white">What your score means</h2>
+        <div className="mb-10 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-5 font-serif text-xl font-semibold text-ink">What your score means</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {tierRanges.map((t) => (
-              <div key={t.tier} className="rounded-xl border border-blue-900/40 bg-blue-950/30 p-3 text-center">
-                <div className="mb-0.5 text-sm font-bold" style={{ color: TIER_COLORS[t.tier] }}>
+              <div key={t.tier} className="border border-hairline bg-plum p-3 text-center">
+                <div className="mb-0.5 font-serif text-sm font-semibold" style={{ color: TIER_CONFIG[t.tier].color }}>
                   {t.tier}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-ink-muted">
                   {t.min}–{t.max}
                 </div>
               </div>
@@ -126,20 +124,17 @@ export default function HowScoringWorksPage() {
         </div>
 
         {/* CTA */}
-        <div className="glass-card relative overflow-hidden rounded-2xl p-10 text-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-cyan-600/5 pointer-events-none" />
-          <div className="relative">
-            <h3 className="mb-2 text-2xl font-black text-white">See it applied to a real profile</h3>
-            <p className="mb-6 text-slate-400">
-              Every profile shows this same math worked out for that specific consumer&apos;s reviews.
-            </p>
-            <Link
-              href="/profile"
-              className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 hover:scale-[1.02]"
-            >
-              View a profile →
-            </Link>
-          </div>
+        <div className="border border-hairline bg-plum-raised p-10 text-center">
+          <h3 className="mb-2 font-serif text-2xl font-semibold text-ink">See it applied to a real profile</h3>
+          <p className="mb-6 text-ink-muted">
+            Every profile shows this same math worked out for that specific consumer&apos;s reviews.
+          </p>
+          <Link
+            href="/profile"
+            className="rounded bg-gold px-8 py-3 text-sm font-semibold text-plum transition-colors hover:bg-gold-deep"
+          >
+            View a profile →
+          </Link>
         </div>
       </div>
     </div>
