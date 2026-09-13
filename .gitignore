@@ -25,3 +25,6 @@ yarn-error.log*
 persona-sprint/personas/personas.jsonl
 persona-sprint/personas/scaffold.jsonl
 persona-sprint/personas/batches/
+
+# persona-sprint: generated feedback data stays local (themes_final.json itself is still tracked)
+persona-sprint/feedback/feedback.jsonl
