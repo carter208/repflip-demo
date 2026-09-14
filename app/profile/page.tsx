@@ -471,7 +471,9 @@ function ProfileContent() {
             <div className="border border-hairline bg-plum-raised p-6">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="font-serif text-lg font-semibold text-ink">Review history</h2>
-                <span className="text-xs text-ink-muted">{consumer.reviews.length} reviews</span>
+                <span className="text-xs text-ink-muted">
+                  {consumer.reviews.length} review{consumer.reviews.length === 1 ? "" : "s"}
+                </span>
               </div>
 
               {/* Tabs */}

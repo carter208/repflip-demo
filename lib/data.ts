@@ -426,6 +426,16 @@ export const CONSUMERS: Consumer[] = [
         tags: ["Respectful", "Followed through", "Paid on time"],
         date: "Jan 5, 2026",
       },
+      {
+        id: "r13",
+        businessName: "Eagle Dry Cleaners",
+        businessType: "Dry Cleaning",
+        rating: 2,
+        tags: ["Difficult to reach"],
+        notes: "Flagged as unreachable for a pickup call, but phone records showed the number listed was disconnected on the business's end.",
+        date: "Nov 12, 2025",
+        disputeStatus: "resolved_favorably",
+      },
     ],
   }),
   makeConsumer({
@@ -437,6 +447,16 @@ export const CONSUMERS: Consumer[] = [
     points: 2140,
     memberSince: "Mar 2024",
     reviews: [
+      {
+        id: "r9",
+        businessName: "Cobblestone Mercantile",
+        businessType: "Boutique Retail",
+        rating: 1,
+        tags: ["No-show", "Payment dispute", "Aggressive/rude"],
+        notes: "Did not show for scheduled pickup, disputed the charge, and was combative via text.",
+        date: "May 20, 2026",
+        disputeStatus: "disputed",
+      },
       {
         id: "r4",
         businessName: "Bloom Crate Co.",
@@ -522,16 +542,6 @@ export const CONSUMERS: Consumer[] = [
     memberSince: "Sep 2024",
     reviews: [
       {
-        id: "r9",
-        businessName: "Meridian & Co.",
-        businessType: "Boutique Retail",
-        rating: 1,
-        tags: ["No-show", "Payment dispute", "Aggressive/rude"],
-        notes: "Did not show for scheduled pickup, disputed the charge, and was combative via text.",
-        date: "Mar 5, 2026",
-        disputeStatus: "disputed",
-      },
-      {
         id: "r10",
         businessName: "Sunset Ridge Apartments",
         businessType: "Property Management",
@@ -540,16 +550,6 @@ export const CONSUMERS: Consumer[] = [
         notes: "Disputed a late fee as an error. Reviewed and denied — records showed the fee was valid.",
         date: "Nov 18, 2025",
         disputeStatus: "resolved_unfavorably",
-      },
-      {
-        id: "r13",
-        businessName: "Eagle Dry Cleaners",
-        businessType: "Dry Cleaning",
-        rating: 2,
-        tags: ["Difficult to reach"],
-        notes: "Flagged as unreachable for a pickup call, but phone records showed the number listed was disconnected on the business's end.",
-        date: "Jan 22, 2026",
-        disputeStatus: "resolved_favorably",
       },
     ],
   }),

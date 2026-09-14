@@ -25,6 +25,7 @@ export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
   const reliabilityTotal = categoryTotal(items, "reliability");
   const conductTotal = categoryTotal(items, "conduct");
   const hasSuspended = items.some((item) => item.suspended);
+  const decayCount = items.filter((item) => item.decayNote).length;
 
   return (
     <div className="border border-hairline bg-plum-sunken p-4">
@@ -48,6 +49,12 @@ export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
         of <span className="font-semibold text-gold">{clamped}</span>.
         {hasSuspended ? " One review is currently disputed and isn't counted either way." : ""}
       </p>
+
+      {decayCount > 0 && (
+        <p className="mb-3 text-xs font-medium text-gold">
+          {decayCount} {decayCount === 1 ? "reset" : "resets"} due to 12+ months clean
+        </p>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between border border-hairline bg-plum px-3 py-1.5">
