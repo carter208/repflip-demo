@@ -528,6 +528,13 @@ function ProfileContent() {
                           stays visible above exactly as submitted, but its tags are permanently excluded
                           from your score — as if it never happened.
                         </div>
+                      ) : review.disputeStatus === "resolved_unfavorably" ? (
+                        <div className="border border-hairline bg-plum px-3 py-2 text-xs text-ink-muted">
+                          <span className="font-semibold text-ink">Dispute reviewed — original rating upheld.</span>{" "}
+                          Repflip reviewed this dispute and found the original review accurate. Its tags count
+                          toward your score at full weight, same as any other review — nothing is hidden or
+                          discounted because it was disputed.
+                        </div>
                       ) : disputedReviews[review.id] || review.disputeStatus === "disputed" ? (
                         <div className="border border-rust bg-plum px-3 py-2 text-xs text-rust">
                           <span className="font-semibold">Dispute submitted — pending.</span> Repflip will

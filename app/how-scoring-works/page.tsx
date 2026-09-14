@@ -4,6 +4,7 @@ import {
   TAG_WEIGHTS,
   TAG_CATEGORIES,
   RELIABILITY_ESCALATION_WEIGHTS,
+  RELIABILITY_DECAY_MONTHS,
   BEHAVIORAL_TAGS,
   TIER_CONFIG,
   getTierFromScore,
@@ -61,10 +62,42 @@ export default function HowScoringWorksPage() {
         <h1 className="mb-4 font-serif text-4xl font-semibold leading-tight text-ink md:text-5xl">
           How your score is calculated
         </h1>
-        <p className="mb-12 max-w-xl text-lg leading-relaxed text-ink-muted">
+        <p className="mb-8 max-w-xl text-lg leading-relaxed text-ink-muted">
           No hidden formula. Every reputation score on Repflip is built the same simple way,
           and this page states the whole thing — the same numbers used everywhere else in
           the product.
+        </p>
+
+        {/* Plain-language summary — the headline claim, no mechanics required
+            to get the gist. Everything below restates this in full detail. */}
+        <div className="mb-12 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-3 font-serif text-xl font-semibold text-ink">The short version</h2>
+          <ul className="flex flex-col gap-2.5 text-sm leading-relaxed text-ink-muted">
+            <li>
+              Everyone starts at <span className="font-semibold text-ink">{SCORE_BASELINE}</span>. Good
+              reviews raise it, bad ones lower it, clamped to 0–100.
+            </li>
+            <li>
+              A single missed appointment costs far less than an established pattern of them — the
+              cost only reaches full weight on the {ordinal(RELIABILITY_ESCALATION_WEIGHTS.length + 1)}{" "}
+              time, and it resets if {RELIABILITY_DECAY_MONTHS} months pass without a repeat.
+            </li>
+            <li>
+              How someone behaves and communicates is judged the same way every time — no grace
+              period there.
+            </li>
+            <li>
+              A disputed review doesn&apos;t count while it&apos;s pending. If it&apos;s upheld after
+              review, it counts at full weight like any other; if it&apos;s overturned, it&apos;s
+              excluded for good.
+            </li>
+          </ul>
+        </div>
+
+        <SectionLabel>The details</SectionLabel>
+        <p className="mb-6 max-w-xl text-sm leading-relaxed text-ink-muted">
+          The exact numbers behind the summary above — the same ones used to calculate every score
+          shown in the product.
         </p>
 
         {/* The formula */}
@@ -181,6 +214,15 @@ export default function HowScoringWorksPage() {
             reliability tags and every conduct tag don&apos;t escalate — only negative
             reliability tags do.
           </p>
+          <div className="mt-4 border-l-2 border-hairline pl-4">
+            <p className="text-sm font-semibold text-ink">A clean period resets the count</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">
+              If {RELIABILITY_DECAY_MONTHS} months pass with no new occurrence of a specific
+              negative reliability tag, its count resets to zero. The next occurrence, if there
+              ever is one, is treated as a 1st occurrence again — an old, isolated incident with a
+              long clean stretch since doesn&apos;t carry a penalty forward indefinitely.
+            </p>
+          </div>
         </div>
 
         {/* Disputes */}
@@ -201,6 +243,14 @@ export default function HowScoringWorksPage() {
                 That review is permanently excluded from your score — as if it never happened.
                 It still stays visible in your review history exactly as submitted; only its
                 effect on your score is removed for good.
+              </p>
+            </div>
+            <div className="border-l-2 border-rust pl-4">
+              <p className="text-sm font-semibold text-ink">If a dispute is reviewed and the original rating is upheld</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">
+                The review counts at full weight, the same as any other active review — nothing
+                about having been disputed reduces its effect or exempts it from escalation.
+                Disputing a review that turns out to be accurate doesn&apos;t discount it.
               </p>
             </div>
           </div>

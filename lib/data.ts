@@ -3,8 +3,12 @@ export type Tier = "Bronze" | "Silver" | "Gold" | "Platinum";
 // "disputed": pending resolution — the review's tags don't count toward the
 // score or toward escalation while pending. "resolved_favorably": the
 // dispute was upheld — permanently excluded from scoring, as if the review
-// never happened. Undefined means the review counts normally.
-export type DisputeStatus = "disputed" | "resolved_favorably";
+// never happened. "resolved_unfavorably": the dispute was reviewed and the
+// original review was upheld — it counts normally (full weight, normal
+// escalation participation), same as any other active review; nothing about
+// having been disputed reduces its effect. Undefined also means the review
+// counts normally.
+export type DisputeStatus = "disputed" | "resolved_favorably" | "resolved_unfavorably";
 
 export interface Review {
   id: string;
@@ -118,11 +122,28 @@ export const TAG_CATEGORIES: Record<string, TagCategory> = {
 // full, a first-time slip is not.
 export const RELIABILITY_ESCALATION_WEIGHTS: number[] = [-2, -5];
 
+// A clean period resets escalation. If a consumer goes this many months
+// without a new occurrence of a specific negative reliability tag, the next
+// occurrence (if any) is treated as a 1st occurrence again — the count
+// doesn't carry forward forever. This mirrors the same reasoning behind
+// escalation itself: an old, isolated incident with a long clean stretch
+// since shouldn't be weighed the same as an active, ongoing pattern.
+export const RELIABILITY_DECAY_MONTHS = 12;
+
 function escalatingReliabilityWeight(fullWeight: number, occurrenceIndex: number): number {
   if (occurrenceIndex < RELIABILITY_ESCALATION_WEIGHTS.length) {
     return RELIABILITY_ESCALATION_WEIGHTS[occurrenceIndex];
   }
   return fullWeight;
+}
+
+// Whole calendar months between two timestamps, floored — used only to
+// compare against RELIABILITY_DECAY_MONTHS, so day-of-month precision isn't
+// needed.
+function monthsBetween(earlierMs: number, laterMs: number): number {
+  const a = new Date(earlierMs);
+  const b = new Date(laterMs);
+  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
 }
 
 export function ordinal(n: number): string {
@@ -148,6 +169,11 @@ export interface ScoreContribution {
   positive: boolean;
   // Set only for escalating (negative reliability) rows — e.g. "1st occurrence".
   escalationNote?: string;
+  // Set only when this row's occurrence count was reset by a clean period —
+  // i.e. it would otherwise have escalated further, but enough time passed
+  // since the last occurrence of this tag that it's being treated as a fresh
+  // start instead.
+  decayNote?: string;
   // True if this row represents a tag on a review that's currently disputed
   // and pending — shown with points: 0 since it isn't counted while pending.
   suspended?: boolean;
@@ -268,7 +294,8 @@ export function getCleanStreak(reviews: Review[]): number {
 // resolved_favorably one permanently). Disputed (pending) reviews still
 // appear in the returned list as zero-point "suspended" rows so the UI can
 // show what's currently on hold; resolved_favorably reviews don't appear at
-// all.
+// all. resolved_unfavorably reviews are active like any other — full weight,
+// normal escalation participation — the dispute simply didn't change anything.
 //
 // Negative reliability tags (see TAG_CATEGORIES) escalate: counted in
 // chronological order per tag, the 1st and 2nd occurrence use
@@ -276,6 +303,11 @@ export function getCleanStreak(reviews: Review[]): number {
 // TAG_WEIGHTS value. Everything else (positive reliability tags, and every
 // conduct tag regardless of sign) uses its flat weight × count, same as
 // before.
+//
+// A clean period resets escalation: if RELIABILITY_DECAY_MONTHS or more pass
+// between one occurrence of a specific negative reliability tag and the
+// next, the count resets and the next occurrence is treated as a 1st
+// occurrence again rather than carrying the old count forward.
 export function getScoreBreakdown(reviews: Review[]): ScoreContribution[] {
   const active = reviews.filter((r) => r.disputeStatus !== "disputed" && r.disputeStatus !== "resolved_favorably");
   const disputed = reviews.filter((r) => r.disputeStatus === "disputed");
@@ -285,20 +317,32 @@ export function getScoreBreakdown(reviews: Review[]): ScoreContribution[] {
   const escalatingRows: ScoreContribution[] = [];
   const flatCounts: Record<string, number> = {};
   const occurrenceIndex: Record<string, number> = {};
+  const lastOccurrenceDate: Record<string, number> = {};
 
   for (const review of chronological) {
+    const reviewDate = parseReviewDate(review.date);
     for (const tag of review.tags) {
       const weight = TAG_WEIGHTS[tag] ?? 0;
       const isEscalating = TAG_CATEGORIES[tag] === "reliability" && weight < 0;
       if (isEscalating) {
+        const previousDate = lastOccurrenceDate[tag];
+        const decayed =
+          previousDate !== undefined && monthsBetween(previousDate, reviewDate) >= RELIABILITY_DECAY_MONTHS;
+        if (decayed) occurrenceIndex[tag] = 0;
+
         const index = occurrenceIndex[tag] ?? 0;
         occurrenceIndex[tag] = index + 1;
+        lastOccurrenceDate[tag] = reviewDate;
+
         escalatingRows.push({
           tag,
           count: 1,
           points: escalatingReliabilityWeight(weight, index),
           positive: false,
-          escalationNote: ordinal(index + 1) + " occurrence",
+          escalationNote: ordinal(index + 1) + " occurrence" + (decayed ? " (reset)" : ""),
+          ...(decayed
+            ? { decayNote: `count reset — no new "${tag}" tag for ${RELIABILITY_DECAY_MONTHS}+ months` }
+            : {}),
         });
       } else {
         flatCounts[tag] = (flatCounts[tag] ?? 0) + 1;
@@ -457,6 +501,15 @@ export const CONSUMERS: Consumer[] = [
         notes: "Second missed session this year, no call ahead this time.",
         date: "Apr 10, 2026",
       },
+      {
+        id: "r12",
+        businessName: "Ready Set Fit",
+        businessType: "Personal Training",
+        rating: 2,
+        tags: ["No-show"],
+        notes: "Missed a session again after over a year with no issues in between.",
+        date: "Jun 15, 2027",
+      },
     ],
   }),
   makeConsumer({
@@ -484,8 +537,19 @@ export const CONSUMERS: Consumer[] = [
         businessType: "Property Management",
         rating: 2,
         tags: ["Payment dispute"],
-        notes: "Attempted to dispute a legitimate late fee. Resolved after documentation provided.",
+        notes: "Disputed a late fee as an error. Reviewed and denied — records showed the fee was valid.",
         date: "Nov 18, 2025",
+        disputeStatus: "resolved_unfavorably",
+      },
+      {
+        id: "r13",
+        businessName: "Eagle Dry Cleaners",
+        businessType: "Dry Cleaning",
+        rating: 2,
+        tags: ["Difficult to reach"],
+        notes: "Flagged as unreachable for a pickup call, but phone records showed the number listed was disconnected on the business's end.",
+        date: "Jan 22, 2026",
+        disputeStatus: "resolved_favorably",
       },
     ],
   }),
