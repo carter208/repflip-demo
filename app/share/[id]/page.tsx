@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { CONSUMERS, getCleanStreak } from "@/lib/data";
+import { CONSUMERS, getCleanStreak, getTierFromScore, deriveScore } from "@/lib/data";
 import { drawScoreCard } from "@/lib/shareCard";
 import { isShareLinkActive } from "@/lib/shareLink";
 import ShareCard from "@/components/ShareCard";
@@ -59,11 +59,13 @@ export default function SharePage() {
 
   const streak = getCleanStreak(consumer.reviews);
   const firstName = consumer.name.split(" ")[0];
+  const liveScore = deriveScore(consumer.reviews);
+  const liveTier = getTierFromScore(liveScore);
 
   const handleDownload = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    await drawScoreCard(canvas, { name: consumer.name, tier: consumer.tier, score: consumer.score, streak });
+    await drawScoreCard(canvas, { name: consumer.name, tier: liveTier, score: liveScore, streak });
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;
@@ -74,7 +76,7 @@ export default function SharePage() {
   return (
     <div className="min-h-screen bg-plum px-6 pb-24 pt-32">
       <div className="mx-auto max-w-sm">
-        <ShareCard name={consumer.name} tier={consumer.tier} score={consumer.score} streak={streak} />
+        <ShareCard name={consumer.name} tier={liveTier} score={liveScore} streak={streak} />
         <canvas ref={canvasRef} className="hidden" />
         <button
           onClick={handleDownload}

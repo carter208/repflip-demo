@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import { CONSUMERS, TIER_CONFIG, getTierProgress, getCleanStreak, NEGATIVE_TAGS, FREEZE_COST, type Consumer } from "@/lib/data";
+import { CONSUMERS, TIER_CONFIG, getTierProgress, getTierFromScore, deriveScore, getCleanStreak, NEGATIVE_TAGS, FREEZE_COST, type Consumer } from "@/lib/data";
 import { useScoreReveal } from "@/lib/useScoreReveal";
 import { drawScoreCard } from "@/lib/shareCard";
 import { SHARE_LINK_EXPIRY_DAYS, isShareLinkActive, createShareLink, revokeShareLink } from "@/lib/shareLink";
@@ -69,9 +69,14 @@ function ProfileContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "1";
   const consumer = CONSUMERS.find((c) => c.id === id) ?? CONSUMERS[0];
-  const cfg = TIER_CONFIG[consumer.tier];
+  // Always recomputed from the current reviews — not the static consumer.score
+  // snapshot — so disputing a review (which suspends its tags) is reflected
+  // immediately, without the ring and the breakdown ever disagreeing.
+  const liveScore = deriveScore(consumer.reviews);
+  const liveTier = getTierFromScore(liveScore);
+  const cfg = TIER_CONFIG[liveTier];
   const breakdown = POINTS_BREAKDOWN[consumer.id] ?? { earned: consumer.points, spent: 0 };
-  const tierProgress = getTierProgress(consumer.score, consumer.tier);
+  const tierProgress = getTierProgress(liveScore, liveTier);
   const nextCfg = tierProgress.nextTier ? TIER_CONFIG[tierProgress.nextTier] : null;
 
   const [claimed, setClaimed] = useState(false);
@@ -148,6 +153,12 @@ function ProfileContent() {
     if (!disputeReason.trim()) return;
     setDisputeSubmitting(true);
     setTimeout(() => {
+      // Mutates the shared review object directly (same convention as
+      // awardReviewPoints mutating consumer.points) so getScoreBreakdown /
+      // deriveScore — both pure functions over consumer.reviews — pick up
+      // the suspension on the very next render, wherever they're called.
+      const review = consumer.reviews.find((r) => r.id === reviewId);
+      if (review) review.disputeStatus = "disputed";
       setDisputedReviews((prev) => ({ ...prev, [reviewId]: disputeReason.trim() }));
       setDisputeSubmitting(false);
       setDisputeOpenId(null);
@@ -164,7 +175,7 @@ function ProfileContent() {
   const handleDownloadShareCard = async () => {
     const canvas = shareCanvasRef.current;
     if (!canvas) return;
-    await drawScoreCard(canvas, { name: consumer.name, tier: consumer.tier, score: consumer.score, streak: cleanStreak });
+    await drawScoreCard(canvas, { name: consumer.name, tier: liveTier, score: liveScore, streak: cleanStreak });
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;
@@ -263,7 +274,7 @@ function ProfileContent() {
 
               {/* Score Ring */}
               <div className="mb-5 flex justify-center border-y border-hairline py-6">
-                <ScoreCircle score={consumer.score} revealKey={consumer.id} />
+                <ScoreCircle score={liveScore} revealKey={consumer.id} />
               </div>
 
               {/* Score Breakdown — right under the score itself, real visual weight */}
@@ -273,7 +284,7 @@ function ProfileContent() {
 
               {/* Tier label */}
               <p className="mb-4 text-center font-serif text-lg font-semibold" style={{ color: cfg.color }}>
-                {consumer.tier} member
+                {liveTier} member
               </p>
 
               {/* Share Score CTA */}
@@ -300,7 +311,7 @@ function ProfileContent() {
                       tier.
                     </p>
                     <div className="mb-1.5 flex justify-between text-xs">
-                      <span className="font-semibold" style={{ color: cfg.color }}>{consumer.tier}</span>
+                      <span className="font-semibold" style={{ color: cfg.color }}>{liveTier}</span>
                       <span className="font-semibold" style={{ color: nextCfg?.color }}>{tierProgress.nextTier}</span>
                     </div>
                     <div className="h-1 w-full bg-hairline">
@@ -443,7 +454,7 @@ function ProfileContent() {
                   { value: String(yearReviews.length), label: "Reviews received", sub: `of ${consumer.reviews.length} total` },
                   { value: breakdown.earned.toLocaleString(), label: "Points earned", sub: "lifetime total" },
                   { value: dollarValue, label: "Balance value", sub: `${points.toLocaleString()} pts` },
-                  { value: consumer.tier, label: "Current tier", sub: `score ${consumer.score}/100`, style: { color: cfg.color } },
+                  { value: liveTier, label: "Current tier", sub: `score ${liveScore}/100`, style: { color: cfg.color } },
                 ].map((stat) => (
                   <div key={stat.label} className="flex flex-col items-center justify-center gap-0.5 bg-plum-raised p-4 text-center">
                     <div className="font-serif text-2xl font-bold leading-none text-ink" style={stat.style}>
@@ -511,9 +522,17 @@ function ProfileContent() {
                       </div>
 
                       {/* Dispute this review */}
-                      {disputedReviews[review.id] ? (
+                      {review.disputeStatus === "resolved_favorably" ? (
+                        <div className="border border-sage bg-plum px-3 py-2 text-xs text-sage">
+                          <span className="font-semibold">Dispute resolved in your favor.</span> This review
+                          stays visible above exactly as submitted, but its tags are permanently excluded
+                          from your score — as if it never happened.
+                        </div>
+                      ) : disputedReviews[review.id] || review.disputeStatus === "disputed" ? (
                         <div className="border border-rust bg-plum px-3 py-2 text-xs text-rust">
-                          <span className="font-semibold">Dispute submitted.</span> Repflip will review this within 3–5 business days.
+                          <span className="font-semibold">Dispute submitted — pending.</span> Repflip will
+                          review this within 3–5 business days. While pending, this review&apos;s tags don&apos;t
+                          count toward your score — see the score breakdown above.
                         </div>
                       ) : disputeOpenId === review.id ? (
                         <div className="border border-hairline bg-plum p-3">
@@ -561,7 +580,7 @@ function ProfileContent() {
                       )}
 
                       {/* Streak freeze — only offered once a review is under dispute, and only if it would otherwise break the streak */}
-                      {disputedReviews[review.id] && review.tags.some((t) => negativeSet.has(t)) && (
+                      {(disputedReviews[review.id] || review.disputeStatus === "disputed") && review.tags.some((t) => negativeSet.has(t)) && (
                         frozenReviewIds.includes(review.id) ? (
                           <div className="mt-2 border border-sage bg-plum px-3 py-2 text-xs text-sage">
                             <span className="font-semibold">Streak protected while disputed</span> — {FREEZE_COST} pts spent.
@@ -659,7 +678,7 @@ function ProfileContent() {
                   </p>
                   <p className="mt-1 text-sm text-ink-muted">
                     Redeem for discounts, gift cards, and monthly prize draws.
-                    {consumer.tier !== "Platinum" && " Keep earning to reach the next tier."}
+                    {liveTier !== "Platinum" && " Keep earning to reach the next tier."}
                   </p>
                 </div>
                 <Link
@@ -692,7 +711,7 @@ function ProfileContent() {
 
             {shareLinkActive ? (
               <>
-                <ShareCard name={consumer.name} tier={consumer.tier} score={consumer.score} streak={cleanStreak} />
+                <ShareCard name={consumer.name} tier={liveTier} score={liveScore} streak={cleanStreak} />
                 <canvas ref={shareCanvasRef} className="hidden" />
                 <div className="mt-4 flex gap-3">
                   <button

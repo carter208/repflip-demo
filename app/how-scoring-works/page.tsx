@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { SCORE_BASELINE, TAG_WEIGHTS, BEHAVIORAL_TAGS, TIER_CONFIG, getTierFromScore, type Tier } from "@/lib/data";
+import {
+  SCORE_BASELINE,
+  TAG_WEIGHTS,
+  TAG_CATEGORIES,
+  RELIABILITY_ESCALATION_WEIGHTS,
+  BEHAVIORAL_TAGS,
+  TIER_CONFIG,
+  getTierFromScore,
+  ordinal,
+  type Tier,
+} from "@/lib/data";
 
 // Tier ranges are derived by scanning every possible score against the real
 // getTierFromScore function — never hand-typed — so this page can't drift
@@ -31,11 +41,17 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function HowScoringWorksPage() {
   const tierRanges = getTierRanges();
-  const orderedTags = BEHAVIORAL_TAGS.map((t) => ({
+  const allTags = BEHAVIORAL_TAGS.map((t) => ({
     label: t.label,
     positive: t.positive,
     weight: TAG_WEIGHTS[t.label] ?? 0,
+    category: TAG_CATEGORIES[t.label],
   }));
+  const reliabilityTags = allTags.filter((t) => t.category === "reliability");
+  const conductTags = allTags.filter((t) => t.category === "conduct");
+  // The negative reliability tag(s) escalation actually applies to — derived,
+  // not assumed, in case the categorization or weights change later.
+  const escalatingTags = reliabilityTags.filter((t) => t.weight < 0);
 
   return (
     <div className="min-h-screen bg-plum">
@@ -56,11 +72,13 @@ export default function HowScoringWorksPage() {
           <h2 className="mb-3 font-serif text-xl font-semibold text-ink">The formula</h2>
           <p className="mb-4 leading-relaxed text-ink-muted">
             Your score starts at a fixed baseline, then moves up or down by the weight of
-            every behavioral tag on every review you&apos;ve received. The result is clamped
-            to the 0–100 range.
+            every behavioral tag on every review you&apos;ve received, clamped to the 0–100
+            range. Tags fall into two categories that are treated differently (see below), and
+            a review that&apos;s currently disputed doesn&apos;t count at all until it&apos;s
+            resolved.
           </p>
           <div className="border border-hairline bg-plum p-4 text-center font-mono text-sm text-gold">
-            score = clamp( {SCORE_BASELINE} + sum of (tag weight × how many times you got that tag), 0, 100 )
+            score = clamp( {SCORE_BASELINE} + sum of each active review&apos;s tag weights, 0, 100 )
           </div>
         </div>
 
@@ -78,32 +96,108 @@ export default function HowScoringWorksPage() {
           </p>
         </div>
 
-        {/* Tag weights table */}
+        {/* Two categories */}
         <div className="mb-6 border border-hairline bg-plum-raised p-8">
-          <h2 className="mb-1 font-serif text-xl font-semibold text-ink">Every tag and its weight</h2>
+          <h2 className="mb-1 font-serif text-xl font-semibold text-ink">Two kinds of tags</h2>
           <p className="mb-5 text-sm text-ink-muted">
-            This is the complete list — the same weights used in the score breakdown on every profile.
+            Every tag belongs to one of two categories, and they&apos;re treated differently below.
+          </p>
+
+          <div className="mb-5">
+            <p className="mb-2 text-sm font-semibold text-gold">Reliability — do they show up and follow through?</p>
+            <div className="flex flex-col gap-1.5">
+              {reliabilityTags.map((tag) => (
+                <div
+                  key={tag.label}
+                  className={`flex items-center justify-between border-l-2 px-4 py-2.5 ${tag.positive ? "border-sage" : "border-rust"}`}
+                >
+                  <span className="text-sm font-medium text-ink">{tag.label}</span>
+                  <span className={`text-sm font-semibold ${tag.positive ? "text-sage" : "text-rust"}`}>
+                    {tag.positive ? `+${tag.weight} per review` : "escalating — see below"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-semibold text-gold">Conduct — how do they behave and communicate?</p>
+            <div className="flex flex-col gap-1.5">
+              {conductTags.map((tag) => (
+                <div
+                  key={tag.label}
+                  className={`flex items-center justify-between border-l-2 px-4 py-2.5 ${tag.positive ? "border-sage" : "border-rust"}`}
+                >
+                  <span className="text-sm font-medium text-ink">{tag.label}</span>
+                  <span className={`text-sm font-semibold ${tag.positive ? "text-sage" : "text-rust"}`}>
+                    {tag.weight > 0 ? "+" : ""}
+                    {tag.weight} per review
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-ink-muted">
+              Conduct tags are always flat — the first &ldquo;{conductTags.find((t) => !t.positive)?.label}&rdquo; costs
+              exactly as much as the fifth. Character-based concerns don&apos;t get a grace period.
+            </p>
+          </div>
+        </div>
+
+        {/* Escalation */}
+        <div className="mb-6 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-3 font-serif text-xl font-semibold text-ink">
+            Reliability slip-ups escalate — they aren&apos;t flat
+          </h2>
+          <p className="mb-4 leading-relaxed text-ink-muted">
+            A single missed appointment is common for anyone with an unpredictable schedule —
+            it shouldn&apos;t cost the same as an established pattern. So for a negative
+            reliability tag ({escalatingTags.map((t) => t.label).join(", ")}), the cost depends
+            on how many times you&apos;ve received that specific tag, counted in order:
           </p>
           <div className="flex flex-col gap-1.5">
-            {orderedTags.map((tag) => (
-              <div
-                key={tag.label}
-                className={`flex items-center justify-between border-l-2 px-4 py-2.5 ${
-                  tag.positive ? "border-sage" : "border-rust"
-                }`}
-              >
-                <span className="text-sm font-medium text-ink">{tag.label}</span>
-                <span className={`text-sm font-semibold ${tag.positive ? "text-sage" : "text-rust"}`}>
-                  {tag.weight > 0 ? "+" : ""}
-                  {tag.weight} per review
+            {RELIABILITY_ESCALATION_WEIGHTS.map((weight, i) => (
+              <div key={i} className="flex items-center justify-between border-l-2 border-rust px-4 py-2.5">
+                <span className="text-sm font-medium text-ink">{ordinal(i + 1)} occurrence</span>
+                <span className="text-sm font-semibold text-rust">{weight} points</span>
+              </div>
+            ))}
+            {escalatingTags.map((tag) => (
+              <div key={tag.label} className="flex items-center justify-between border-l-2 border-rust px-4 py-2.5">
+                <span className="text-sm font-medium text-ink">
+                  {ordinal(RELIABILITY_ESCALATION_WEIGHTS.length + 1)} occurrence and beyond
                 </span>
+                <span className="text-sm font-semibold text-rust">{tag.weight} points (full weight)</span>
               </div>
             ))}
           </div>
           <p className="mt-4 text-xs text-ink-muted">
-            A tag applies once per review it appears on — three reviews all tagged
-            &ldquo;Paid on time&rdquo; count three times.
+            First offense, nearly forgiven. A genuine pattern, penalized in full. Positive
+            reliability tags and every conduct tag don&apos;t escalate — only negative
+            reliability tags do.
           </p>
+        </div>
+
+        {/* Disputes */}
+        <div className="mb-10 border border-hairline bg-plum-raised p-8">
+          <h2 className="mb-3 font-serif text-xl font-semibold text-ink">How disputes affect your score</h2>
+          <div className="flex flex-col gap-3">
+            <div className="border-l-2 border-hairline pl-4">
+              <p className="text-sm font-semibold text-ink">While a review is disputed and pending</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">
+                None of its tags count toward your score, and they don&apos;t count toward the
+                escalation order above either — as far as your score is concerned, it&apos;s on
+                hold, not counted either way.
+              </p>
+            </div>
+            <div className="border-l-2 border-sage pl-4">
+              <p className="text-sm font-semibold text-ink">If a dispute is resolved in your favor</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">
+                That review is permanently excluded from your score — as if it never happened.
+                It still stays visible in your review history exactly as submitted; only its
+                effect on your score is removed for good.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Tier thresholds */}

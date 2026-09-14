@@ -1,5 +1,11 @@
 export type Tier = "Bronze" | "Silver" | "Gold" | "Platinum";
 
+// "disputed": pending resolution — the review's tags don't count toward the
+// score or toward escalation while pending. "resolved_favorably": the
+// dispute was upheld — permanently excluded from scoring, as if the review
+// never happened. Undefined means the review counts normally.
+export type DisputeStatus = "disputed" | "resolved_favorably";
+
 export interface Review {
   id: string;
   businessName: string;
@@ -11,6 +17,7 @@ export interface Review {
   // True if an active streak freeze absorbed this review's negative tags,
   // shielding the clean streak instead of resetting it.
   protectedByFreeze?: boolean;
+  disputeStatus?: DisputeStatus;
 }
 
 export interface Consumer {
@@ -82,11 +89,68 @@ export const TAG_WEIGHTS: Record<string, number> = {
   "Aggressive/rude": -12,
 };
 
+export type TagCategory = "reliability" | "conduct";
+
+// Reliability = "do they show up and follow through" — the category eligible
+// for escalating grace on negative tags (see RELIABILITY_ESCALATION below),
+// because a single missed appointment is common for anyone with an
+// unpredictable schedule and shouldn't cost the same as an established
+// pattern. Conduct = "how do they behave/communicate" — character-based
+// concerns, which don't get an escalation grace period; the first
+// "Aggressive/rude" costs exactly as much as the fifth.
+export const TAG_CATEGORIES: Record<string, TagCategory> = {
+  "Paid on time": "reliability",
+  "Reliable": "reliability",
+  "Followed through": "reliability",
+  "No-show": "reliability",
+  "Respectful": "conduct",
+  "Clear communicator": "conduct",
+  "Aggressive/rude": "conduct",
+  "Difficult to reach": "conduct",
+  "Payment dispute": "conduct",
+};
+
+// Escalating cost for a NEGATIVE reliability tag, keyed by how many times
+// (in chronological order) this consumer has received that exact tag on an
+// active (non-disputed, non-excluded) review. The first occurrence is
+// nearly forgiven; the second costs more; the third and beyond hit the
+// tag's full weight from TAG_WEIGHTS — a genuine pattern is penalized in
+// full, a first-time slip is not.
+export const RELIABILITY_ESCALATION_WEIGHTS: number[] = [-2, -5];
+
+function escalatingReliabilityWeight(fullWeight: number, occurrenceIndex: number): number {
+  if (occurrenceIndex < RELIABILITY_ESCALATION_WEIGHTS.length) {
+    return RELIABILITY_ESCALATION_WEIGHTS[occurrenceIndex];
+  }
+  return fullWeight;
+}
+
+export function ordinal(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+function parseReviewDate(dateStr: string): number {
+  const t = Date.parse(dateStr);
+  return Number.isNaN(t) ? 0 : t;
+}
+
 export interface ScoreContribution {
   tag: string;
   count: number;
   points: number;
   positive: boolean;
+  // Set only for escalating (negative reliability) rows — e.g. "1st occurrence".
+  escalationNote?: string;
+  // True if this row represents a tag on a review that's currently disputed
+  // and pending — shown with points: 0 since it isn't counted while pending.
+  suspended?: boolean;
 }
 
 // Single source of truth for which tags count as negative — derived from
@@ -196,17 +260,69 @@ export function getCleanStreak(reviews: Review[]): number {
   return streak;
 }
 
-// Aggregates a consumer's real review tags into weighted score contributions,
-// sorted by magnitude so the biggest drivers (good or bad) show first.
+// Aggregates a consumer's real review tags into weighted score contributions.
+//
+// Reviews that are disputed or resolved_favorably are excluded entirely —
+// their tags contribute no points and don't count toward escalation, as if
+// they hadn't happened (a disputed one only while pending; a
+// resolved_favorably one permanently). Disputed (pending) reviews still
+// appear in the returned list as zero-point "suspended" rows so the UI can
+// show what's currently on hold; resolved_favorably reviews don't appear at
+// all.
+//
+// Negative reliability tags (see TAG_CATEGORIES) escalate: counted in
+// chronological order per tag, the 1st and 2nd occurrence use
+// RELIABILITY_ESCALATION_WEIGHTS, the 3rd and beyond use the tag's full
+// TAG_WEIGHTS value. Everything else (positive reliability tags, and every
+// conduct tag regardless of sign) uses its flat weight × count, same as
+// before.
 export function getScoreBreakdown(reviews: Review[]): ScoreContribution[] {
-  const counts: Record<string, number> = {};
-  reviews.forEach((r) => r.tags.forEach((t) => { counts[t] = (counts[t] ?? 0) + 1; }));
-  return Object.entries(counts)
-    .map(([tag, count]) => {
+  const active = reviews.filter((r) => r.disputeStatus !== "disputed" && r.disputeStatus !== "resolved_favorably");
+  const disputed = reviews.filter((r) => r.disputeStatus === "disputed");
+
+  const chronological = [...active].sort((a, b) => parseReviewDate(a.date) - parseReviewDate(b.date));
+
+  const escalatingRows: ScoreContribution[] = [];
+  const flatCounts: Record<string, number> = {};
+  const occurrenceIndex: Record<string, number> = {};
+
+  for (const review of chronological) {
+    for (const tag of review.tags) {
       const weight = TAG_WEIGHTS[tag] ?? 0;
-      return { tag, count, points: weight * count, positive: weight >= 0 };
-    })
-    .sort((a, b) => Math.abs(b.points) - Math.abs(a.points));
+      const isEscalating = TAG_CATEGORIES[tag] === "reliability" && weight < 0;
+      if (isEscalating) {
+        const index = occurrenceIndex[tag] ?? 0;
+        occurrenceIndex[tag] = index + 1;
+        escalatingRows.push({
+          tag,
+          count: 1,
+          points: escalatingReliabilityWeight(weight, index),
+          positive: false,
+          escalationNote: ordinal(index + 1) + " occurrence",
+        });
+      } else {
+        flatCounts[tag] = (flatCounts[tag] ?? 0) + 1;
+      }
+    }
+  }
+
+  const flatRows: ScoreContribution[] = Object.entries(flatCounts).map(([tag, count]) => {
+    const weight = TAG_WEIGHTS[tag] ?? 0;
+    return { tag, count, points: weight * count, positive: weight >= 0 };
+  });
+
+  const suspendedRows: ScoreContribution[] = disputed.flatMap((review) =>
+    review.tags.map((tag) => ({
+      tag,
+      count: 1,
+      points: 0,
+      positive: (TAG_WEIGHTS[tag] ?? 0) >= 0,
+      suspended: true,
+    }))
+  );
+
+  const counted = [...flatRows, ...escalatingRows].sort((a, b) => Math.abs(b.points) - Math.abs(a.points));
+  return [...counted, ...suspendedRows];
 }
 
 export function deriveScore(reviews: Review[]): number {
@@ -332,6 +448,15 @@ export const CONSUMERS: Consumer[] = [
         notes: "Missed a scheduled consultation call without notice. Eventually followed up.",
         date: "Jan 30, 2026",
       },
+      {
+        id: "r11",
+        businessName: "Ready Set Fit",
+        businessType: "Personal Training",
+        rating: 2,
+        tags: ["No-show"],
+        notes: "Second missed session this year, no call ahead this time.",
+        date: "Apr 10, 2026",
+      },
     ],
   }),
   makeConsumer({
@@ -351,6 +476,7 @@ export const CONSUMERS: Consumer[] = [
         tags: ["No-show", "Payment dispute", "Aggressive/rude"],
         notes: "Did not show for scheduled pickup, disputed the charge, and was combative via text.",
         date: "Mar 5, 2026",
+        disputeStatus: "disputed",
       },
       {
         id: "r10",

@@ -29,21 +29,26 @@ export default function ScoreBreakdown({ reviews }: { reviews: Review[] }) {
         {items.length === 0 ? (
           <p className="px-3 py-2 text-sm text-ink-muted">No reviews yet — nothing to adjust the baseline.</p>
         ) : (
-          items.map((item) => (
+          items.map((item, idx) => (
             <div
-              key={item.tag}
+              key={`${item.tag}-${idx}`}
               className={`flex items-center justify-between border-l-2 px-3 py-1.5 ${
-                item.positive ? "border-sage" : "border-rust"
+                item.suspended ? "border-dashed border-ink-muted" : item.positive ? "border-sage" : "border-rust"
               }`}
             >
-              <span className="text-sm text-ink">
+              <span className={`text-sm ${item.suspended ? "text-ink-muted italic" : "text-ink"}`}>
                 {item.tag}
                 {item.count > 1 ? ` ×${item.count}` : ""}
+                {item.escalationNote ? ` (${item.escalationNote})` : ""}
               </span>
-              <span className={`text-sm font-semibold ${item.positive ? "text-sage" : "text-rust"}`}>
-                {item.points > 0 ? "+" : ""}
-                {item.points}
-              </span>
+              {item.suspended ? (
+                <span className="text-xs font-medium text-ink-muted">pending dispute — not counted</span>
+              ) : (
+                <span className={`text-sm font-semibold ${item.positive ? "text-sage" : "text-rust"}`}>
+                  {item.points > 0 ? "+" : ""}
+                  {item.points}
+                </span>
+              )}
             </div>
           ))
         )}

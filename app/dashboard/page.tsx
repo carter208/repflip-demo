@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CONSUMERS, TIER_CONFIG, getTierProgress, isNegativeTag, type Consumer } from "@/lib/data";
+import { CONSUMERS, TIER_CONFIG, getTierProgress, getTierFromScore, deriveScore, isNegativeTag, type Consumer } from "@/lib/data";
 import { useScoreReveal } from "@/lib/useScoreReveal";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 
@@ -77,9 +77,13 @@ function TrafficLight({ score, hasReviews, revealKey }: { score: number; hasRevi
 }
 
 function ConsumerCard({ consumer, onSubmitReview, revealKey }: { consumer: Consumer; onSubmitReview: () => void; revealKey: string | number }) {
-  const cfg = TIER_CONFIG[consumer.tier];
+  // Live-derived, not the static consumer.score snapshot — reflects any
+  // reviews currently excluded from scoring (e.g. a pending dispute).
+  const liveScore = deriveScore(consumer.reviews);
+  const liveTier = getTierFromScore(liveScore);
+  const cfg = TIER_CONFIG[liveTier];
   const hasReviews = consumer.reviews.length > 0;
-  const tierProgress = getTierProgress(consumer.score, consumer.tier);
+  const tierProgress = getTierProgress(liveScore, liveTier);
   const nextCfg = tierProgress.nextTier ? TIER_CONFIG[tierProgress.nextTier] : null;
 
   const stats = [
@@ -97,7 +101,7 @@ function ConsumerCard({ consumer, onSubmitReview, revealKey }: { consumer: Consu
     <div className="border border-hairline bg-plum-raised">
       {/* Traffic Light Hero */}
       <div className="border-b border-hairline px-6 py-8 text-center">
-        <TrafficLight score={consumer.score} hasReviews={hasReviews} revealKey={`${consumer.id}-${revealKey}`} />
+        <TrafficLight score={liveScore} hasReviews={hasReviews} revealKey={`${consumer.id}-${revealKey}`} />
       </div>
 
       {/* Score Breakdown — right under the score itself, real visual weight */}
@@ -123,7 +127,7 @@ function ConsumerCard({ consumer, onSubmitReview, revealKey }: { consumer: Consu
             </div>
           </div>
           <span className="font-serif text-sm font-semibold" style={{ color: cfg.color }}>
-            {consumer.tier}
+            {liveTier}
           </span>
         </div>
 
@@ -132,7 +136,7 @@ function ConsumerCard({ consumer, onSubmitReview, revealKey }: { consumer: Consu
           {tierProgress.nextTier ? (
             <>
               <div className="mb-1.5 flex items-center justify-between text-xs">
-                <span className="font-semibold" style={{ color: cfg.color }}>{consumer.tier}</span>
+                <span className="font-semibold" style={{ color: cfg.color }}>{liveTier}</span>
                 <span className="text-ink-muted">
                   {tierProgress.pointsToNext}/100 points to{" "}
                   <span className="font-semibold" style={{ color: nextCfg?.color }}>{tierProgress.nextTier}</span>
