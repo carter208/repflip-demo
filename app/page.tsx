@@ -6,22 +6,22 @@ import { useState } from "react";
 const FEATURES_BUSINESS = [
   {
     title: "Instant lookup",
-    desc: "Search any customer by name or phone before you say yes. See their score, tier, and history in seconds.",
+    desc: "Search any consumer by name or phone before you say yes. See their score, tier, and history in seconds.",
   },
   {
     title: "Submit reviews",
-    desc: "Rate customers with behavioral tags after every interaction. Your feedback shapes the platform for every business.",
+    desc: "Rate consumers with behavioral tags after every interaction. Your feedback shapes the platform for every business.",
   },
   {
     title: "Risk protection",
-    desc: "Decline high-risk customers before they cost you time, money, or headaches.",
+    desc: "Decline high-risk consumers before they cost you time, money, or headaches.",
   },
 ];
 
 const FEATURES_CONSUMER = [
   {
     title: "Build your score",
-    desc: "Every good interaction adds to your reputation score. Prove you're a great customer across every business you work with.",
+    desc: "Every good interaction adds to your score. Prove you're a great consumer across every business you work with.",
   },
   {
     title: "Earn rewards",
@@ -34,7 +34,7 @@ const FEATURES_CONSUMER = [
 ];
 
 const SIGNALS = [
-  { label: "Green light", range: "Score 85+", desc: "Trusted customer. Move forward.", color: "#8fa06a" },
+  { label: "Green light", range: "Score 85+", desc: "Trusted consumer. Move forward.", color: "#8fa06a" },
   { label: "Yellow light", range: "Score 65–84", desc: "Proceed with caution. Review their history.", color: "#d4a24e" },
   { label: "Red light", range: "Score below 65", desc: "High risk. Charge more or pass.", color: "#b3564a" },
 ];
@@ -73,7 +73,7 @@ export default function LandingPage() {
 
           <p className="mb-10 max-w-xl text-lg text-ink-muted">
             Repflip is the two-sided reputation platform that lets any business rate their
-            customers — and rewards people who show up, pay on time, and treat others with
+            consumers — and rewards people who show up, pay on time, and treat others with
             respect.
           </p>
 
@@ -128,7 +128,7 @@ export default function LandingPage() {
           </h2>
           <p className="text-lg leading-relaxed text-ink-muted">
             Repflip exists to create a fair economy of trust — where businesses of every kind can
-            finally know who they&apos;re dealing with, good customers are recognized and rewarded, and
+            finally know who they&apos;re dealing with, good consumers are recognized and rewarded, and
             trust flows both ways. We believe the people who show up, pay without argument, and
             treat others with respect deserve to be known. And the businesses who serve them
             deserve to know before they say yes.
@@ -145,7 +145,7 @@ export default function LandingPage() {
           </h2>
           <p className="mb-12 max-w-xl text-ink-muted">
             Every business — from landlords to retailers to service providers — deserves to know
-            their customer&apos;s reputation before committing their time and resources.
+            their consumer&apos;s reputation before committing their time and resources.
           </p>
           <div className="grid gap-px border border-hairline bg-hairline md:grid-cols-3">
             {FEATURES_BUSINESS.map((f) => (

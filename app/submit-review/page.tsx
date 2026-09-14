@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BEHAVIORAL_TAGS, CONSUMERS, awardReviewPoints, type PointsAward } from "@/lib/data";
+import { BEHAVIORAL_TAGS, TAG_CATEGORIES, CONSUMERS, awardReviewPoints, type PointsAward } from "@/lib/data";
 
 export default function SubmitReviewPage() {
   const [consumerId, setConsumerId] = useState("1");
@@ -38,8 +38,8 @@ export default function SubmitReviewPage() {
 
   const STAR_LABELS = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
 
-  const positiveTags = BEHAVIORAL_TAGS.filter((t) => t.positive);
-  const negativeTags = BEHAVIORAL_TAGS.filter((t) => !t.positive);
+  const reliabilityTags = BEHAVIORAL_TAGS.filter((t) => TAG_CATEGORIES[t.label] === "reliability");
+  const conductTags = BEHAVIORAL_TAGS.filter((t) => TAG_CATEGORIES[t.label] === "conduct");
 
   if (submitted && consumer) {
     return (
@@ -200,14 +200,19 @@ export default function SubmitReviewPage() {
             </div>
           </div>
 
-          {/* Behavioral Tags */}
+          {/* Behavioral Tags — grouped the same way as the score breakdown and
+              methodology page: Reliability (show up, follow through) and
+              Conduct (behave, communicate), not just by positive/negative. */}
           <div className="border border-hairline bg-plum-raised p-5">
-            <label className="mb-4 block text-sm font-medium text-ink-muted">Behavioral tags</label>
+            <label className="mb-1 block text-sm font-medium text-ink-muted">Behavioral tags</label>
+            <p className="mb-4 text-xs text-ink-muted">
+              Grouped the same way as everywhere else on Repflip.
+            </p>
 
             <div className="mb-4">
-              <p className="mb-2 text-sm text-sage">Positive</p>
+              <p className="mb-2 text-sm font-semibold text-gold">Reliability</p>
               <div className="flex flex-wrap gap-2">
-                {positiveTags.map((tag) => {
+                {reliabilityTags.map((tag) => {
                   const active = selectedTags.includes(tag.id);
                   return (
                     <button
@@ -215,7 +220,11 @@ export default function SubmitReviewPage() {
                       type="button"
                       onClick={() => toggleTag(tag.id)}
                       className={`tag-interactive border px-3.5 py-1.5 text-sm font-medium ${
-                        active ? "border-sage text-sage" : "border-hairline text-ink-muted"
+                        active
+                          ? tag.positive
+                            ? "border-sage text-sage"
+                            : "border-rust text-rust"
+                          : "border-hairline text-ink-muted"
                       }`}
                     >
                       {tag.label}
@@ -226,9 +235,9 @@ export default function SubmitReviewPage() {
             </div>
 
             <div>
-              <p className="mb-2 text-sm text-rust">Concerns</p>
+              <p className="mb-2 text-sm font-semibold text-gold">Conduct</p>
               <div className="flex flex-wrap gap-2">
-                {negativeTags.map((tag) => {
+                {conductTags.map((tag) => {
                   const active = selectedTags.includes(tag.id);
                   return (
                     <button
@@ -236,7 +245,11 @@ export default function SubmitReviewPage() {
                       type="button"
                       onClick={() => toggleTag(tag.id)}
                       className={`tag-interactive border px-3.5 py-1.5 text-sm font-medium ${
-                        active ? "border-rust text-rust" : "border-hairline text-ink-muted"
+                        active
+                          ? tag.positive
+                            ? "border-sage text-sage"
+                            : "border-rust text-rust"
+                          : "border-hairline text-ink-muted"
                       }`}
                     >
                       {tag.label}

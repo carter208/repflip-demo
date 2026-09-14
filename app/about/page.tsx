@@ -36,8 +36,8 @@ export default function AboutPage() {
             </p>
 
             <p>
-              The idea is simple: businesses rate customers the same way customers rate businesses.
-              Consumers build a reputation score that follows them across every business they
+              The idea is simple: businesses rate consumers the same way consumers rate businesses.
+              Consumers build a score that follows them across every business they
               work with — no matter the industry. Good behavior gets rewarded with points, prizes,
               and priority access to the best businesses in town. And businesses finally get what
               they&apos;ve always deserved — a clear signal before they commit.

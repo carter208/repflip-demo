@@ -63,7 +63,7 @@ export default function HowScoringWorksPage() {
           How your score is calculated
         </h1>
         <p className="mb-8 max-w-xl text-lg leading-relaxed text-ink-muted">
-          No hidden formula. Every reputation score on Repflip is built the same simple way,
+          No hidden formula. Every score on Repflip is built the same simple way,
           and this page states the whole thing — the same numbers used everywhere else in
           the product.
         </p>

@@ -30,6 +30,19 @@ const mobileLinks: Array<{ href: string; label: string }> = [
 
 const consumerHrefs = consumerLinks.map((l) => l.href);
 
+// Routes where it matters which side of the platform you're currently
+// looking at — a dual-role user (business owner who's also reviewed as a
+// consumer, or vice versa) can otherwise lose track of which perspective
+// they're in when moving between them.
+const BUSINESS_VIEW_PATHS = ["/dashboard", "/review", "/submit-review"];
+const CONSUMER_VIEW_PATHS = ["/profile", "/rewards", "/how-it-works", "/how-scoring-works"];
+
+function getRoleView(pathname: string): "business" | "consumer" | null {
+  if (BUSINESS_VIEW_PATHS.some((p) => pathname.startsWith(p))) return "business";
+  if (CONSUMER_VIEW_PATHS.some((p) => pathname.startsWith(p))) return "consumer";
+  return null;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
@@ -39,6 +52,7 @@ export default function Navbar() {
   const dropRef = useRef<HTMLDivElement>(null);
 
   const isConsumerActive = consumerHrefs.includes(pathname);
+  const roleView = getRoleView(pathname);
 
   // Close desktop dropdown on outside click
   useEffect(() => {
@@ -67,15 +81,31 @@ export default function Navbar() {
       {/* ── Top bar ────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-6">
-          {/* Logo */}
-          <Link href="/" onClick={() => setMenuOpen(false)} className="flex shrink-0 items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center bg-gold">
-              <span className="font-serif text-base font-bold text-plum">R</span>
-            </div>
-            <span className="font-serif text-lg font-semibold text-ink">
-              Rep<span className="text-gold">flip</span>
-            </span>
-          </Link>
+          {/* Logo + role indicator */}
+          <div className="flex shrink-0 items-center gap-3">
+            <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center bg-gold">
+                <span className="font-serif text-base font-bold text-plum">R</span>
+              </div>
+              <span className="font-serif text-lg font-semibold text-ink">
+                Rep<span className="text-gold">flip</span>
+              </span>
+            </Link>
+
+            {/* Persistent, always-visible indicator of which side of the
+                platform you're currently viewing — never hidden behind a
+                breakpoint or a menu, so it's never ambiguous. */}
+            {roleView && (
+              <span
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:text-xs ${
+                  roleView === "business" ? "border-gold text-gold" : "border-sage text-sage"
+                }`}
+              >
+                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${roleView === "business" ? "bg-gold" : "bg-sage"}`} />
+                {roleView === "business" ? "Business view" : "Consumer view"}
+              </span>
+            )}
+          </div>
 
           {/* Desktop links — hidden below md ───────────────────────────── */}
           <div className="hidden md:flex items-center gap-6">

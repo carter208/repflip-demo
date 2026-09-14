@@ -21,7 +21,7 @@ function StarRow({ rating }: { rating: number }) {
 type Signal = "green" | "yellow" | "red" | "grey";
 
 const SIGNAL_TEXT: Record<Signal, { headline: string; subline: string; color: string }> = {
-  green: { headline: "Green light — trusted customer", subline: "Move forward.", color: "#8fa06a" },
+  green: { headline: "Green light — trusted consumer", subline: "Move forward.", color: "#8fa06a" },
   yellow: { headline: "Yellow light — proceed with caution", subline: "Review the details.", color: "#d4a24e" },
   red: { headline: "Red light — high risk", subline: "Charge more or decline.", color: "#b3564a" },
   grey: { headline: "No reviews yet", subline: "You would be their first.", color: "#b09fb8" },

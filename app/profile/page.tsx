@@ -430,7 +430,7 @@ function ProfileContent() {
                 </div>
                 <div className="grid gap-px border border-hairline bg-hairline sm:grid-cols-3">
                   {[
-                    { step: "1", title: "Your score", desc: "0–100 reputation score built from every review you receive." },
+                    { step: "1", title: "Your score", desc: "0–100 score built from every review you receive." },
                     { step: "2", title: "Earn points", desc: "Every positive review earns points. 100 pts = $1 real value." },
                     { step: "3", title: "Redeem rewards", desc: "Spend points on gift cards, discounts, and monthly cash draws." },
                   ].map((s) => (
