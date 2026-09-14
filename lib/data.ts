@@ -103,11 +103,11 @@ export const TAG_CATEGORIES: Record<string, TagCategory> = {
   "Reliable": "reliability",
   "Followed through": "reliability",
   "No-show": "reliability",
+  "Payment dispute": "reliability",
   "Respectful": "conduct",
   "Clear communicator": "conduct",
   "Aggressive/rude": "conduct",
   "Difficult to reach": "conduct",
-  "Payment dispute": "conduct",
 };
 
 // Escalating cost for a NEGATIVE reliability tag, keyed by how many times

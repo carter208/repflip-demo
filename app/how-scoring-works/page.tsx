@@ -154,19 +154,25 @@ export default function HowScoringWorksPage() {
             reliability tag ({escalatingTags.map((t) => t.label).join(", ")}), the cost depends
             on how many times you&apos;ve received that specific tag, counted in order:
           </p>
-          <div className="flex flex-col gap-1.5">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            Applies the same way to every escalating tag:
+          </p>
+          <div className="mb-4 flex flex-col gap-1.5">
             {RELIABILITY_ESCALATION_WEIGHTS.map((weight, i) => (
               <div key={i} className="flex items-center justify-between border-l-2 border-rust px-4 py-2.5">
                 <span className="text-sm font-medium text-ink">{ordinal(i + 1)} occurrence</span>
                 <span className="text-sm font-semibold text-rust">{weight} points</span>
               </div>
             ))}
+          </div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            {ordinal(RELIABILITY_ESCALATION_WEIGHTS.length + 1)} occurrence and beyond — full weight, per tag:
+          </p>
+          <div className="flex flex-col gap-1.5">
             {escalatingTags.map((tag) => (
               <div key={tag.label} className="flex items-center justify-between border-l-2 border-rust px-4 py-2.5">
-                <span className="text-sm font-medium text-ink">
-                  {ordinal(RELIABILITY_ESCALATION_WEIGHTS.length + 1)} occurrence and beyond
-                </span>
-                <span className="text-sm font-semibold text-rust">{tag.weight} points (full weight)</span>
+                <span className="text-sm font-medium text-ink">{tag.label}</span>
+                <span className="text-sm font-semibold text-rust">{tag.weight} points</span>
               </div>
             ))}
           </div>
